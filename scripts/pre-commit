@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "Running Checkstyle (sun_checks)..."
+mvn -q checkstyle:check
+
+if [ $? -ne 0 ]; then
+  echo "Checkstyle failed. Commit aborted."
+  exit 1
+fi
