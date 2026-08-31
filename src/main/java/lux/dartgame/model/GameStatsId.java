@@ -4,7 +4,14 @@ import jakarta.persistence.Embeddable;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 @Embeddable
+@Getter
+@Setter
+@EqualsAndHashCode
 public class GameStatsId implements Serializable {
     private long userId;
     private long gameId;
