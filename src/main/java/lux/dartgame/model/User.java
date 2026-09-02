@@ -23,6 +23,8 @@ public class User {
     @GeneratedValue
     private long userId;
     private String userName;
+    private String password;
+    private String role;
 
     // A user can have many sessions
     @OneToMany(mappedBy = "user")
