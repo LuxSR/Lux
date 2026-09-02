@@ -1,10 +1,26 @@
 package lux.dartgame.model;
 
-public enum Gametype {
-    S_501,          // Single checkout 501 game
-    S_301,          // Single checkout 301 game
-    D_501,          // Double checkout 501 game
-    D_301,          // Double checkout 301 game
-    HIGHSCORER,
-    KILLER
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+@Entity
+@Table (name = "Gametypes")
+@Getter
+@Setter
+public class Gametype {
+    @Id
+    @GeneratedValue()
+    private long gametypeId;
+    private String gametype;
+
+    @ManyToMany(mappedBy = "gametypes")
+    private List<Game> games;
 }
