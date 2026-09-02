@@ -16,3 +16,29 @@ The project has the structure:
     │                    └── model/
     │                    └── repository/
     │                    └── service/
+    └── resources/
+        └── db/
+            └── migration/
+
+## Database
+
+The project uses PostgreSQL with Flyway for schema management and seeding.
+
+### Setup
+
+1. Create a PostgreSQL database named `dartgame`
+2. Update connection details in `src/main/resources/application.properties` if needed
+
+### Seeding
+
+Seed data runs automatically on startup via Flyway migrations:
+
+- `V1__init_schema.sql` - Creates all tables
+- `V2__seed_data.sql` - Seeds initial data
+
+The seed includes:
+- 3 users (Alice van Buren, Bob de Groot, Luke Littler)
+- 5 gametypes (501, 301, Cricket, Killer, Around the Clock)
+- Sessions, games, and statistics with realistic dart data
+
+Re-running is safe - all inserts use `ON CONFLICT DO NOTHING`.
