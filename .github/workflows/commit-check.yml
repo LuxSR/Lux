@@ -6,6 +6,7 @@ on:
 
 jobs:
   commit-check:
+    if: ${{ !contains(github.ref, 'refs/heads/dev') && !contains(github.ref, 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:  # use permissions because use of pr-comments
       contents: read
