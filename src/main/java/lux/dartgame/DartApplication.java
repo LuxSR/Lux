@@ -1,8 +1,13 @@
 package lux.dartgame;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+
+@SpringBootApplication
+@ConfigurationPropertiesScan
 public class DartApplication {
-    // Todo: Implement application
     public static void main(final String[] args) {
-        System.out.println("Starting Dart Game!");
+        SpringApplication.run(DartApplication.class, args);
     }
 }
