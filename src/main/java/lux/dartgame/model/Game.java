@@ -2,8 +2,6 @@ package lux.dartgame.model;
 
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -16,8 +14,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "Games")
@@ -28,21 +28,29 @@ public class Game {
     @Id
     @GeneratedValue
     private long gameId;
+
+    @CreationTimestamp
     private Instant playedAt;
 
+    @NotNull
     @ManyToMany
     @JoinTable(
             name = "game_mm_gametypes",
             joinColumns = @JoinColumn(name = "gameId"),
             inverseJoinColumns = @JoinColumn(name = "gametypeId")
     )
-    private List<Gametype> gametypes;
+    private List<Gametype> gametypes  = new ArrayList<>();
 
     // A session can hold many games
+    @NotNull
+    @JoinColumn(nullable = false)
     @ManyToOne
     private Session session;
 
     // A user can win many games
     @ManyToOne
     private User winner;
+
+    // TODO add logic for how a deleted user affects sessions.
+    // all players in a session must be deleted for it to delete.
 }

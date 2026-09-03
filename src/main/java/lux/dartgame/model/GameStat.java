@@ -30,4 +30,6 @@ public class GameStat {
     private int triple20s;
     private int bullseyes;
     private int highestScore;
+    private float checkoutAccuracy;
+    private int highestCheckout;
 }

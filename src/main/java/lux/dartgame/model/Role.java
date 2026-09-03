@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -14,18 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table (name = "Gametypes")
+@Table(name = "Roles")
 @Getter
 @Setter
-public class Gametype {
+public class Role {
     @Id
-    @GeneratedValue()
-    private long gametypeId;
+    @GeneratedValue
+    private long roleId;
 
     @NotBlank
     @Column(unique = true)
-    private String gametype;
+    private String role;
 
-    @ManyToMany(mappedBy = "gametypes")
-    private List<Game> games = new ArrayList<>();
+    @OneToMany(mappedBy = "role")
+    private List<User> users = new ArrayList<>();
 }
