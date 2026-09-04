@@ -4,6 +4,7 @@ import lux.dartgame.config.JwtProperties;
 import lux.dartgame.dto.LoginRequest;
 import lux.dartgame.dto.RegisterRequest;
 import lux.dartgame.dto.TokenResponse;
+import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.model.Role;
 import lux.dartgame.model.User;
@@ -64,7 +65,7 @@ public final class AuthService {
         user.setUserName(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         Role userRole = roleRepository.findByRole("USER")
-                .orElseThrow(() -> new IllegalStateException("USER role not found in database"));
+                .orElseThrow(RoleNotFoundException::new);
         user.setRole(userRole);
         userRepository.save(user);
 
