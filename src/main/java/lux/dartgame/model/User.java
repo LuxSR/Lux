@@ -3,6 +3,7 @@ package lux.dartgame.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -27,7 +28,7 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long userId;
 
     @NotBlank
@@ -53,7 +54,7 @@ public class User {
     private List<GameStat> gameStats = new ArrayList<>();
 
     @NotNull
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "role_id", nullable = false)
     @ManyToOne
     private Role role;
 

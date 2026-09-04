@@ -2,6 +2,7 @@ package lux.dartgame.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -24,14 +25,14 @@ import lombok.Setter;
 public class Session {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long sessionId;
 
     private boolean isActive;
 
     // A session can be owned by one User
     @NotNull
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     @ManyToOne
     private User owner;
 

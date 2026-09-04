@@ -2,6 +2,7 @@ package lux.dartgame.model;
 
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -26,7 +27,7 @@ import org.hibernate.annotations.CreationTimestamp;
 public class Game {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long gameId;
 
     @CreationTimestamp
@@ -43,11 +44,12 @@ public class Game {
 
     // A session can hold many games
     @NotNull
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "session_id", nullable = false)
     @ManyToOne
     private Session session;
 
     // A user can win many games
+    @JoinColumn(name = "winner_id")
     @ManyToOne
     private User winner;
 

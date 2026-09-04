@@ -1,6 +1,7 @@
 package lux.dartgame.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -18,7 +19,7 @@ import lombok.Setter;
 public class PlayerStat {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long playerStatId;
     private float avgPoints;
     private int wonGames;
@@ -30,7 +31,7 @@ public class PlayerStat {
     private float avgCheckoutAccuracy;
 
     @NotNull
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "player_id", nullable = false)
     @OneToOne
     private User player;
 }
