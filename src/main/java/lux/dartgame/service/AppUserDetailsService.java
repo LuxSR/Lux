@@ -30,7 +30,7 @@ public final class AppUserDetailsService implements UserDetailsService {
                 .username(user.getUserName())
                 .password(user.getPassword())
                 .authorities(List.of(new SimpleGrantedAuthority(
-                        "ROLE_" + user.getRole())))
+                        "ROLE_" + user.getRole().getRole())))
                 .build();
     }
 }
