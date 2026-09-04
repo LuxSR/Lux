@@ -1,5 +1,6 @@
 package lux.dartgame.service;
 
+import lombok.extern.slf4j.Slf4j;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
+@Slf4j
 @Service
 public final class JwtService {
     private static final int MINUTE_LENGTH = 60;
@@ -27,6 +29,7 @@ public final class JwtService {
     }
 
     public String generateToken(final UserDetails userDetails) {
+        log.info("Generating token for user: {}", userDetails.getUsername());
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(expirationMinutes * MINUTE_LENGTH);
 
@@ -45,9 +48,13 @@ public final class JwtService {
     public boolean isValid(final String token, final UserDetails userDetails) {
         try {
             var claims = parseClaims(token);
-            return claims.getSubject().equals(userDetails.getUsername())
+            boolean valid = claims.getSubject().equals(userDetails.getUsername())
                     && claims.getExpiration().after(new Date());
+            log.debug("Token validation for user {}: {}", userDetails.getUsername(), valid);
+            return valid;
         } catch (JwtException e) {
+            log.debug("Token validation failed for user {}: {}", userDetails.getUsername(),
+                    e.getMessage());
             return false;
         }
     }
