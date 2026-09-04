@@ -1,9 +1,11 @@
 package lux.dartgame.service;
 
+import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.config.JwtProperties;
 import lux.dartgame.dto.LoginRequest;
 import lux.dartgame.dto.RegisterRequest;
 import lux.dartgame.dto.TokenResponse;
+import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.model.Role;
 import lux.dartgame.model.User;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public final class AuthService {
     private static final int MINUTE_LENGTH = 60;
@@ -45,17 +48,20 @@ public final class AuthService {
     }
 
     public TokenResponse login(final LoginRequest request) {
+        log.info("Login attempt for user: {}", request.username());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
 
         var user = (UserDetails) authentication.getPrincipal();
+        log.info("Login successful for user: {}", request.username());
         return TokenResponse.bearer(jwtService.generateToken(user),
                 jwtProperties.expirationMinutes() * MINUTE_LENGTH);
     }
 
 
     public TokenResponse register(final RegisterRequest request) {
+        log.info("Registration attempt for user: {}", request.username());
         if (userRepository.existsByUserName(request.username())) {
             throw new UsernameAlreadyExistsException();
         }
@@ -64,9 +70,10 @@ public final class AuthService {
         user.setUserName(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
         Role userRole = roleRepository.findByRole("USER")
-                .orElseThrow(() -> new IllegalStateException("USER role not found in database"));
+                .orElseThrow(RoleNotFoundException::new);
         user.setRole(userRole);
         userRepository.save(user);
+        log.info("Registration successful for user: {}", request.username());
 
         return TokenResponse.bearer(
                 jwtService.generateToken(asUserDetails(user)),

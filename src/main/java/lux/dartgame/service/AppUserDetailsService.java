@@ -1,6 +1,6 @@
 package lux.dartgame.service;
 
-
+import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.repository.UserRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public final class AppUserDetailsService implements UserDetailsService {
 
@@ -22,6 +23,7 @@ public final class AppUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(final @NonNull String username) {
+        log.debug("Loading user: {}", username);
         var user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found: " + username));
