@@ -5,6 +5,7 @@ import lux.dartgame.config.JwtProperties;
 import lux.dartgame.dto.LoginRequest;
 import lux.dartgame.dto.RegisterRequest;
 import lux.dartgame.dto.TokenResponse;
+import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.model.Role;
@@ -65,10 +66,14 @@ public final class AuthService {
         if (userRepository.existsByUserName(request.username())) {
             throw new UsernameAlreadyExistsException();
         }
+        if (userRepository.existsByEmail(request.email())) {
+            throw new EmailAlreadyExistsException();
+        }
 
         User user = new User();
         user.setUserName(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
+        user.setEmail(request.email());
         Role userRole = roleRepository.findByRole("USER")
                 .orElseThrow(RoleNotFoundException::new);
         user.setRole(userRole);

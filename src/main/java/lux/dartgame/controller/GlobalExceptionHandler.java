@@ -1,6 +1,7 @@
 package lux.dartgame.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,13 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public String handleUsernameAlreadyExists(final UsernameAlreadyExistsException e) {
         log.warn("Username already exists: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public String handleEmailAlreadyExists(final EmailAlreadyExistsException e) {
+        log.warn("Email already exists: {}", e.getMessage());
         return e.getMessage();
     }
 
