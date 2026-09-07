@@ -34,13 +34,9 @@ public class Game {
     private Instant playedAt;
 
     @NotNull
-    @ManyToMany
-    @JoinTable(
-            name = "game_mm_gametypes",
-            joinColumns = @JoinColumn(name = "gameId"),
-            inverseJoinColumns = @JoinColumn(name = "gametypeId")
-    )
-    private List<Gametype> gametypes  = new ArrayList<>();
+    @JoinColumn(name = "gametype_id")
+    @ManyToOne
+    private Gametype gametype;
 
     // A session can hold many games
     @NotNull
