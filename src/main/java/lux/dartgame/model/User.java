@@ -38,6 +38,9 @@ public class User {
     @NotBlank
     private String password;
 
+    @NotBlank
+    private String email;
+
     // A user can have many sessions
     @OneToMany(mappedBy = "owner")
     private List<Session> ownerSessions = new ArrayList<>();
