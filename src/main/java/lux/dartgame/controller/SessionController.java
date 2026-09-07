@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @RestController
-@RequestMapping("session")
+@RequestMapping("/session")
 public final class SessionController {
     // TODO make constants.java file
     private static final int MAX_NR_OF_PLAYERS = 10;
