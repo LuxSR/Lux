@@ -12,7 +12,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -22,7 +24,7 @@ import lombok.Setter;
 @Table(name = "Sessions")
 @Getter
 @Setter
-public class Session {
+public final class Session {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,9 +45,17 @@ public class Session {
             joinColumns = @JoinColumn(name = "sessionId"),
             inverseJoinColumns = @JoinColumn(name = "userId")
     )
-    private List<User> players  = new ArrayList<>();
+    private Set<User> players  = new HashSet<>();
 
     // A game can only be part of one Session.
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Game> games = new ArrayList<>();
+
+    public void addPlayers(final User user) {
+        players.add(user);
+    }
+
+    public void addGame(final Game game) {
+        games.add(game);
+    }
 }
