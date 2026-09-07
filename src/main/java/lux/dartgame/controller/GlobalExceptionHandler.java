@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
+import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -51,6 +52,13 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(RoleNotFoundException.class)
     public String handleRoleNotFound(final RoleNotFoundException e) {
         log.error("Role not found", e);
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public String handleUsernameNotFound(final UsernameNotFoundException e) {
+        log.warn("Username not found: {}", e.getMessage());
         return e.getMessage();
     }
 }

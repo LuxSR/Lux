@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -27,6 +27,6 @@ public class Gametype {
     @Column(unique = true)
     private String gametype;
 
-    @ManyToMany(mappedBy = "gametypes")
+    @OneToMany(mappedBy = "gametype")
     private List<Game> games = new ArrayList<>();
 }
