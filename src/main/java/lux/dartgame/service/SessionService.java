@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.dto.GameRequest;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
+import lux.dartgame.exception.AccessDeniedException;
+import lux.dartgame.exception.NoSessionsForThisUserException;
+import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.model.Game;
 import lux.dartgame.model.Gametype;
 import lux.dartgame.model.Session;
@@ -20,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 @Slf4j
 @Service
@@ -45,13 +50,33 @@ public final class SessionService {
         this.jwtService = jwtServiceParam;
     }
 
+    private String getUserFromAuthHeader(final String authHeaderParam) {
+        String authHeader = authHeaderParam.replace("Bearer ", "");
+        return jwtService.extractUsername(authHeader);
+    }
+
+    public List<SessionResponse> getSession(final String username) {
+        log.info("Looking for all sessions owned by {}", username);
+
+        User owner = userRepository.findByUserName(username)
+                                   .orElseThrow(UsernameNotFoundException::new);
+
+        List<Session> sessions = sessionRepository.findByOwner(owner);
+
+        if (sessions.isEmpty()) {
+            throw new NoSessionsForThisUserException(owner.getUserName());
+        }
+
+        return sessions.stream()
+                .map(s -> new SessionResponse(s.getSessionId(), owner.getUserName()))
+                .collect(Collectors.toList());
+    }
+
     public SessionResponse startSession(final Optional<List<GameRequest>> games,
                                          final Optional<Set<UserRequest>> players,
-                                         final String authHeaderParam) {
+                                         final String authHeader) {
 
-        String authHeader = authHeaderParam.replace("Bearer ", "");
-        String username = jwtService.extractUsername(authHeader);
-
+        String username = getUserFromAuthHeader(authHeader);
         log.info("Attempting to create session for {}", username);
 
         User owner = userRepository.findByUserName(username)
@@ -59,6 +84,7 @@ public final class SessionService {
 
         Session session = new Session();
         session.setOwner(owner);
+        session.setActive(true);
 
         if (players.isEmpty()) {
             session.addPlayers(owner);
@@ -84,7 +110,32 @@ public final class SessionService {
         }
 
         sessionRepository.save(session);
-        log.info("Session created succesfully for {}", username);
-        return null;
+        log.info("Session created successfully for {}", username);
+        return new SessionResponse(session.getSessionId(), owner.getUserName());
+    }
+
+    public void deleteSession(final String sessionId, final String authHeader) {
+
+        String username = getUserFromAuthHeader(authHeader);
+        log.info("{} wants to delete session {}", username, sessionId);
+
+        Session session = sessionRepository.findById(toLong(sessionId))
+                .orElseThrow(SessionNotFoundException::new);
+
+        boolean isOwner = session.getOwner().getUserName().equals(username);
+        boolean isAdmin = "ADMIN".equals(userRepository
+                .findRoleByUserName(username)
+                .orElseThrow(UsernameNotFoundException::new));
+
+        // If session is not active and user is not the owner, or user is not admin
+        boolean canDelete = (isOwner && session.isActive())
+                || (isAdmin && !isOwner && !session.isActive());
+
+        if (!canDelete) {
+            throw new AccessDeniedException();
+        }
+
+        sessionRepository.deleteById(toLong(sessionId));
+        log.info("Successfully deleted session {}", sessionId);
     }
 }

@@ -6,6 +6,7 @@ import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
 import lux.dartgame.service.JwtService;
 import lux.dartgame.service.SessionService;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,5 +43,19 @@ public final class SessionController {
         return sessionService.startSession(Optional.ofNullable(games),
                                            Optional.ofNullable(players),
                                            authHeader);
+    }
+
+    @GetMapping
+    public List<SessionResponse> getSession(final @RequestParam String username,
+                                       final @RequestHeader("Authorization")
+                                                String authHeader) {
+        return sessionService.getSession(username);
+    }
+
+    @DeleteMapping
+    public void deleteSession(final @RequestParam String sessionId,
+                              final @RequestHeader("Authorization")
+                                   String authHeader) {
+        sessionService.deleteSession(sessionId, authHeader);
     }
 }
