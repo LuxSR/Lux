@@ -57,5 +57,6 @@ public final class Session {
 
     public void addGame(final Game game) {
         games.add(game);
+        game.setSession(this);
     }
 }
