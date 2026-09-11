@@ -1,14 +1,13 @@
 package lux.dartgame.controller;
 
-import jakarta.validation.constraints.Size;
-import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.CreateSessionRequest;
 import lux.dartgame.dto.SessionResponse;
-import lux.dartgame.dto.UserRequest;
 import lux.dartgame.service.JwtService;
 import lux.dartgame.service.SessionService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/session")
@@ -33,16 +31,14 @@ public final class SessionController {
     }
 
     @PostMapping
-    public SessionResponse createSession(final @RequestParam(required = false)
-                                             List<GameRequest> games,
-                                         final @RequestParam(required = false)
-                                               @Size(max = MAX_NR_OF_PLAYERS)
-                                                    Set<UserRequest> players,
+    public SessionResponse createSession(final @RequestBody(required = false)
+                                                CreateSessionRequest request,
                                          final @RequestHeader("Authorization")
                                                 String authHeader) {
-        return sessionService.startSession(Optional.ofNullable(games),
-                                           Optional.ofNullable(players),
-                                           authHeader);
+        return sessionService.startSession(
+                Optional.ofNullable(request != null ? request.games() : null),
+                Optional.ofNullable(request != null ? request.players() : null),
+                authHeader);
     }
 
     @GetMapping

@@ -1,5 +1,6 @@
 package lux.dartgame.controller;
 
+import lux.dartgame.dto.CreateSessionRequest;
 import lux.dartgame.dto.GameRequest;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
@@ -42,7 +43,8 @@ class SessionControllerTest {
         when(sessionService.startSession(Optional.of(games), Optional.of(players), AUTH_HEADER))
                 .thenReturn(response);
 
-        SessionResponse result = sessionController.createSession(games, players, AUTH_HEADER);
+        SessionResponse result = sessionController.createSession(
+                new CreateSessionRequest(players, games), AUTH_HEADER);
 
         assertThat(result).isEqualTo(response);
         verify(sessionService).startSession(Optional.of(games), Optional.of(players), AUTH_HEADER);
@@ -53,7 +55,7 @@ class SessionControllerTest {
         when(sessionService.startSession(Optional.empty(), Optional.empty(), AUTH_HEADER))
                 .thenReturn(new SessionResponse(1L, "alice"));
 
-        SessionResponse result = sessionController.createSession(null, null, AUTH_HEADER);
+        SessionResponse result = sessionController.createSession(null, AUTH_HEADER);
 
         assertThat(result.id()).isEqualTo(1L);
         verify(sessionService).startSession(Optional.empty(), Optional.empty(), AUTH_HEADER);
