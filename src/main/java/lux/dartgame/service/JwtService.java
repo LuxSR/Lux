@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lux.dartgame.config.JwtProperties;
+import lux.dartgame.constants.Constants;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +18,6 @@ import java.util.Date;
 @Slf4j
 @Service
 public final class JwtService {
-    private static final int MINUTE_LENGTH = 60;
-
     private final SecretKey key;
     private final long expirationMinutes;
 
@@ -31,7 +30,7 @@ public final class JwtService {
     public String generateToken(final UserDetails userDetails) {
         log.info("Generating token for user: {}", userDetails.getUsername());
         Instant now = Instant.now();
-        Instant expiry = now.plusSeconds(expirationMinutes * MINUTE_LENGTH);
+        Instant expiry = now.plusSeconds(expirationMinutes * Constants.SECONDS_PER_MINUTE);
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())

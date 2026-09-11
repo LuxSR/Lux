@@ -89,9 +89,11 @@ public final class SessionService {
         if (players.isEmpty()) {
             session.addPlayers(owner);
         } else {
+            log.info("Attempting to add players to session");
             session.setPlayers(players.get().stream()
                     .map(player -> userRepository.findByUserName(player.username())
                             .orElseThrow(UsernameNotFoundException::new))
+                    .peek(player -> log.info("Adding player {} to session", player))
                     .collect(Collectors.toSet()));
 
             // Users should not be able to add themselves to the session.

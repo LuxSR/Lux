@@ -1,5 +1,6 @@
 package lux.dartgame.controller;
 
+import lux.dartgame.constants.Constants;
 import lux.dartgame.dto.CreateSessionRequest;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.service.JwtService;
@@ -19,8 +20,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/session")
 public final class SessionController {
-    // TODO make constants.java file
-    private static final int MAX_NR_OF_PLAYERS = 10;
     private final SessionService sessionService;
     private final JwtService jwtService;
 
