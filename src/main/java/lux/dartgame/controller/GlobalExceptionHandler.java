@@ -1,8 +1,12 @@
 package lux.dartgame.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.EmailAlreadyExistsException;
+import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.RoleNotFoundException;
+import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -59,6 +63,34 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException.class)
     public String handleUsernameNotFound(final UsernameNotFoundException e) {
         log.warn("Username not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NoSessionsForThisUserException.class)
+    public String handleSessionNotFoundForUser(final NoSessionsForThisUserException e) {
+        log.warn("Session not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(SessionNotFoundException.class)
+    public String handleSessionNotFound(final SessionNotFoundException e) {
+        log.warn("Session not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(GameModeNotFoundException.class)
+    public String handleGameModeNotFound(final GameModeNotFoundException e) {
+        log.warn("Gametype not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleAccessDenied(final AccessDeniedException e) {
+        log.warn("Access denied: {}", e.getMessage());
         return e.getMessage();
     }
 }

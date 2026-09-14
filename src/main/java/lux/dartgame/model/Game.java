@@ -1,6 +1,7 @@
 package lux.dartgame.model;
 
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -48,6 +50,10 @@ public class Game {
     @JoinColumn(name = "winner_id")
     @ManyToOne
     private User winner;
+
+    // A game can have many gamestats (one per participating user)
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GameStat> gameStats = new ArrayList<>();
 
     // TODO add logic for how a deleted user affects sessions.
     // all players in a session must be deleted for it to delete.

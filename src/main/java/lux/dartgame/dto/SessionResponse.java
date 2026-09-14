@@ -1,4 +1,5 @@
 package lux.dartgame.dto;
 
-public class SessionResponse {
+public record SessionResponse(long id,
+                               String owner) {
 }

@@ -2,6 +2,7 @@ package lux.dartgame.service;
 
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.config.JwtProperties;
+import lux.dartgame.constants.Constants;
 import lux.dartgame.dto.LoginRequest;
 import lux.dartgame.dto.RegisterRequest;
 import lux.dartgame.dto.TokenResponse;
@@ -25,8 +26,6 @@ import java.util.List;
 @Slf4j
 @Service
 public final class AuthService {
-    private static final int MINUTE_LENGTH = 60;
-
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
@@ -57,7 +56,7 @@ public final class AuthService {
         var user = (UserDetails) authentication.getPrincipal();
         log.info("Login successful for user: {}", request.username());
         return TokenResponse.bearer(jwtService.generateToken(user),
-                jwtProperties.expirationMinutes() * MINUTE_LENGTH);
+                jwtProperties.expirationMinutes() * Constants.SECONDS_PER_MINUTE);
     }
 
 
@@ -82,7 +81,7 @@ public final class AuthService {
 
         return TokenResponse.bearer(
                 jwtService.generateToken(asUserDetails(user)),
-                jwtProperties.expirationMinutes() * MINUTE_LENGTH
+                jwtProperties.expirationMinutes() * Constants.SECONDS_PER_MINUTE
         );
     }
 
