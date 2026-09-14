@@ -3,6 +3,7 @@ package lux.dartgame.controller;
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.EmailAlreadyExistsException;
+import lux.dartgame.exception.GameModeNotFoundException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
@@ -68,6 +69,13 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(NoSessionsForThisUserException.class)
     public String handleSessionNotFound(final NoSessionsForThisUserException e) {
         log.warn("Session not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(GameModeNotFoundException.class)
+    public String handleGameModeNotFound(final GameModeNotFoundException e) {
+        log.warn("Gametype not found: {}", e.getMessage());
         return e.getMessage();
     }
 

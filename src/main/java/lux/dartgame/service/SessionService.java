@@ -5,6 +5,7 @@ import lux.dartgame.dto.GameRequest;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
 import lux.dartgame.exception.AccessDeniedException;
+import lux.dartgame.exception.GameModeNotFoundException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.model.Game;
@@ -103,9 +104,9 @@ public final class SessionService {
 
         if (games.isPresent()) {
             for (GameRequest gamemode : games.get()) {
-                Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType());
+                Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
+                        .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
                 Game game = new Game();
-
                 game.setGametype(gametype);
                 session.addGame(game);
             }
