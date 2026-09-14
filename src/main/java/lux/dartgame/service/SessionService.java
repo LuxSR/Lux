@@ -12,7 +12,6 @@ import lux.dartgame.model.Game;
 import lux.dartgame.model.Gametype;
 import lux.dartgame.model.Session;
 import lux.dartgame.model.User;
-import lux.dartgame.repository.GameRepository;
 import lux.dartgame.repository.SessionRepository;
 import lux.dartgame.repository.UserRepository;
 import lux.dartgame.repository.GametypeRepository;
@@ -32,7 +31,6 @@ import static org.apache.commons.lang3.math.NumberUtils.toLong;
 public final class SessionService {
 
     private final SessionRepository sessionRepository;
-    private final GameRepository gameRepository;
     private final UserRepository userRepository;
     private final GametypeRepository gametypeRepository;
 
@@ -40,12 +38,10 @@ public final class SessionService {
 
     @Autowired
     public SessionService(final SessionRepository sessionRepositoryParam,
-                          final GameRepository gameRepositoryParam,
                           final UserRepository userRepositoryParam,
                           final GametypeRepository gametypeRepositoryParam,
                           final JwtService jwtServiceParam) {
         this.sessionRepository = sessionRepositoryParam;
-        this.gameRepository = gameRepositoryParam;
         this.userRepository = userRepositoryParam;
         this.gametypeRepository = gametypeRepositoryParam;
         this.jwtService = jwtServiceParam;
@@ -97,8 +93,7 @@ public final class SessionService {
                     .peek(player -> log.info("Adding player {} to session", player))
                     .collect(Collectors.toSet()));
 
-            // Users should not be able to add themselves to the session.
-            // Make sure the owner is also a player.
+            // The owner is always a player in their own session.
             session.addPlayers(owner);
         }
 

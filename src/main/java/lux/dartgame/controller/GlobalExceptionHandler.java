@@ -6,6 +6,7 @@ import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.GameModeNotFoundException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.RoleNotFoundException;
+import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -67,7 +68,14 @@ public final class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoSessionsForThisUserException.class)
-    public String handleSessionNotFound(final NoSessionsForThisUserException e) {
+    public String handleSessionNotFoundForUser(final NoSessionsForThisUserException e) {
+        log.warn("Session not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(SessionNotFoundException.class)
+    public String handleSessionNotFound(final SessionNotFoundException e) {
         log.warn("Session not found: {}", e.getMessage());
         return e.getMessage();
     }

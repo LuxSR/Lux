@@ -1,6 +1,5 @@
 package lux.dartgame.controller;
 
-import lux.dartgame.constants.Constants;
 import lux.dartgame.dto.CreateSessionRequest;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.service.JwtService;
