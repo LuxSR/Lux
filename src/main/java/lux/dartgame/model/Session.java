@@ -11,6 +11,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +21,7 @@ import java.util.Set;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "Sessions")
@@ -37,6 +40,9 @@ public final class Session {
     @JoinColumn(name = "owner_id", nullable = false)
     @ManyToOne
     private User owner;
+
+    @CreationTimestamp
+    private Instant playedAt;
 
     @NotNull
     @ManyToMany

@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,7 +29,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,9 +36,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SessionServiceTest {
 
-    private static final String AUTH_HEADER = "Bearer some-token";
     private static final String OWNER_USERNAME = "alice";
     private static final String PLAYER_USERNAME = "bob";
+    private static final Instant PLAYED_AT = Instant.parse("2026-09-01T10:00:00Z");
 
     @Mock
     private SessionRepository sessionRepository;
@@ -48,9 +48,6 @@ class SessionServiceTest {
 
     @Mock
     private GametypeRepository gametypeRepository;
-
-    @Mock
-    private JwtService jwtService;
 
     @InjectMocks
     private SessionService sessionService;
@@ -66,17 +63,26 @@ class SessionServiceTest {
         session.setSessionId(id);
         session.setActive(active);
         session.setOwner(owner);
+        session.setPlayedAt(PLAYED_AT);
         return session;
     }
 
-    @Test
-    void startSession_withoutGamesOrPlayers_addsOwnerAndSaves() {
-        User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
-        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+    private void stubSavePopulatingPlayedAt() {
+        when(sessionRepository.save(any())).thenAnswer(invocation -> {
+            Session session = invocation.getArgument(0);
+            session.setPlayedAt(PLAYED_AT);
+            return session;
+        });
+    }
 
-        SessionResponse result = sessionService.startSession(
-                Optional.empty(), Optional.empty(), AUTH_HEADER);
+    @Test
+    void createSession_withoutGamesOrPlayers_addsOwnerAndSaves() {
+        User owner = user(OWNER_USERNAME);
+        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+        stubSavePopulatingPlayedAt();
+
+        SessionResponse result = sessionService.createSession(
+                Optional.empty(), Optional.empty(), OWNER_USERNAME);
 
         ArgumentCaptor<Session> captor = ArgumentCaptor.forClass(Session.class);
         verify(sessionRepository).save(captor.capture());
@@ -84,21 +90,22 @@ class SessionServiceTest {
         assertThat(saved.getOwner()).isEqualTo(owner);
         assertThat(saved.isActive()).isTrue();
         assertThat(saved.getPlayers()).containsExactly(owner);
-        assertThat(result).isEqualTo(new SessionResponse(saved.getSessionId(), OWNER_USERNAME));
+        assertThat(result).isEqualTo(new SessionResponse(saved.getSessionId(),
+                PLAYED_AT.toString(), List.of(), true));
     }
 
     @Test
-    void startSession_withPlayers_addsOwnerAutomatically() {
+    void createSession_withPlayers_addsOwnerAutomatically() {
         User owner = user(OWNER_USERNAME);
         User player = user(PLAYER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
         when(userRepository.findByUserName(PLAYER_USERNAME)).thenReturn(Optional.of(player));
+        stubSavePopulatingPlayedAt();
 
-        sessionService.startSession(
+        sessionService.createSession(
                 Optional.empty(),
                 Optional.of(Set.of(new UserRequest(PLAYER_USERNAME))),
-                AUTH_HEADER);
+                OWNER_USERNAME);
 
         ArgumentCaptor<Session> captor = ArgumentCaptor.forClass(Session.class);
         verify(sessionRepository).save(captor.capture());
@@ -107,46 +114,44 @@ class SessionServiceTest {
     }
 
     @Test
-    void startSession_unknownOwner_throwsAndDoesNotSave() {
-        when(jwtService.extractUsername("some-token")).thenReturn("ghost");
+    void createSession_unknownOwner_throwsAndDoesNotSave() {
         when(userRepository.findByUserName("ghost")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.startSession(
-                Optional.empty(), Optional.empty(), AUTH_HEADER))
+        assertThatThrownBy(() -> sessionService.createSession(
+                Optional.empty(), Optional.empty(), "ghost"))
                 .isInstanceOf(UsernameNotFoundException.class);
 
         verify(sessionRepository, never()).save(any());
     }
 
     @Test
-    void startSession_unknownPlayer_throwsAndDoesNotSave() {
+    void createSession_unknownPlayer_throwsAndDoesNotSave() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
         when(userRepository.findByUserName("ghost")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.startSession(
+        assertThatThrownBy(() -> sessionService.createSession(
                 Optional.empty(),
                 Optional.of(Set.of(new UserRequest("ghost"))),
-                AUTH_HEADER))
+                OWNER_USERNAME))
                 .isInstanceOf(UsernameNotFoundException.class);
 
         verify(sessionRepository, never()).save(any());
     }
 
     @Test
-    void startSession_withValidGametype_attachesGameToSession() {
+    void createSession_withValidGametype_attachesGameToSession() {
         User owner = user(OWNER_USERNAME);
         Gametype gametype = new Gametype();
         gametype.setGametype("501");
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
         when(gametypeRepository.findByGametype("501")).thenReturn(Optional.of(gametype));
+        stubSavePopulatingPlayedAt();
 
-        sessionService.startSession(
+        sessionService.createSession(
                 Optional.of(List.of(new GameRequest("501"))),
                 Optional.empty(),
-                AUTH_HEADER);
+                OWNER_USERNAME);
 
         ArgumentCaptor<Session> captor = ArgumentCaptor.forClass(Session.class);
         verify(sessionRepository).save(captor.capture());
@@ -157,16 +162,15 @@ class SessionServiceTest {
     }
 
     @Test
-    void startSession_unknownGametype_throwsAndDoesNotSave() {
+    void createSession_unknownGametype_throwsAndDoesNotSave() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
         when(gametypeRepository.findByGametype("999")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.startSession(
+        assertThatThrownBy(() -> sessionService.createSession(
                 Optional.of(List.of(new GameRequest("999"))),
                 Optional.empty(),
-                AUTH_HEADER))
+                OWNER_USERNAME))
                 .isInstanceOf(GameModeNotFoundException.class);
 
         verify(sessionRepository, never()).save(any());
@@ -182,8 +186,8 @@ class SessionServiceTest {
         List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME);
 
         assertThat(result).containsExactly(
-                new SessionResponse(1L, OWNER_USERNAME),
-                new SessionResponse(2L, OWNER_USERNAME));
+                new SessionResponse(1L, PLAYED_AT.toString(), List.of(), true),
+                new SessionResponse(2L, PLAYED_AT.toString(), List.of(), true));
     }
 
     @Test
@@ -209,79 +213,72 @@ class SessionServiceTest {
     @Test
     void deleteSession_ownerDeletesOwnActiveSession() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
-        when(sessionRepository.findById(7L)).thenReturn(
-                Optional.of(session(7L, true, owner)));
+        Session ownedSession = session(7L, true, owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        sessionService.deleteSession("7", AUTH_HEADER);
+        sessionService.deleteSession("7", OWNER_USERNAME);
 
-        verify(sessionRepository).deleteById(7L);
+        verify(sessionRepository).delete(ownedSession);
     }
 
     @Test
     void deleteSession_ownerCannotDeleteOwnInactiveSession() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(sessionRepository.findById(7L)).thenReturn(
                 Optional.of(session(7L, false, owner)));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", AUTH_HEADER))
+        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
                 .isInstanceOf(AccessDeniedException.class);
 
-        verify(sessionRepository, never()).deleteById(anyLong());
+        verify(sessionRepository, never()).delete(any());
     }
 
     @Test
     void deleteSession_adminDeletesOthersInactiveSession() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn("admin");
-        when(sessionRepository.findById(7L)).thenReturn(
-                Optional.of(session(7L, false, owner)));
+        Session ownedSession = session(7L, false, owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName("admin")).thenReturn(Optional.of("ADMIN"));
 
-        sessionService.deleteSession("7", AUTH_HEADER);
+        sessionService.deleteSession("7", "admin");
 
-        verify(sessionRepository).deleteById(7L);
+        verify(sessionRepository).delete(ownedSession);
     }
 
     @Test
-    void deleteSession_adminCannotDeleteActiveSession() {
+    void deleteSession_adminDeletesActiveSession() {
         User owner = user(OWNER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn("admin");
-        when(sessionRepository.findById(7L)).thenReturn(
-                Optional.of(session(7L, true, owner)));
+        Session ownedSession = session(7L, true, owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName("admin")).thenReturn(Optional.of("ADMIN"));
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", AUTH_HEADER))
-                .isInstanceOf(AccessDeniedException.class);
+        sessionService.deleteSession("7", "admin");
 
-        verify(sessionRepository, never()).deleteById(anyLong());
+        verify(sessionRepository).delete(ownedSession);
     }
 
     @Test
     void deleteSession_nonOwnerNonAdminCannotDelete() {
         User owner = user(PLAYER_USERNAME);
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(sessionRepository.findById(7L)).thenReturn(
                 Optional.of(session(7L, true, owner)));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", AUTH_HEADER))
+        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
                 .isInstanceOf(AccessDeniedException.class);
 
-        verify(sessionRepository, never()).deleteById(anyLong());
+        verify(sessionRepository, never()).delete(any());
     }
 
     @Test
     void deleteSession_unknownSession_throws() {
-        when(jwtService.extractUsername("some-token")).thenReturn(OWNER_USERNAME);
         when(sessionRepository.findById(7L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", AUTH_HEADER))
+        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
                 .isInstanceOf(SessionNotFoundException.class);
 
-        verify(sessionRepository, never()).deleteById(anyLong());
+        verify(sessionRepository, never()).delete(any());
     }
 }

@@ -2,6 +2,7 @@ package lux.dartgame.service;
 
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
 import lux.dartgame.exception.AccessDeniedException;
@@ -18,6 +19,7 @@ import lux.dartgame.repository.GametypeRepository;
 import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,30 +30,22 @@ import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 @Slf4j
 @Service
-public final class SessionService {
+public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final GametypeRepository gametypeRepository;
 
-    private final JwtService jwtService;
-
     @Autowired
     public SessionService(final SessionRepository sessionRepositoryParam,
                           final UserRepository userRepositoryParam,
-                          final GametypeRepository gametypeRepositoryParam,
-                          final JwtService jwtServiceParam) {
+                          final GametypeRepository gametypeRepositoryParam) {
         this.sessionRepository = sessionRepositoryParam;
         this.userRepository = userRepositoryParam;
         this.gametypeRepository = gametypeRepositoryParam;
-        this.jwtService = jwtServiceParam;
     }
 
-    private String getUserFromAuthHeader(final String authHeaderParam) {
-        String authHeader = authHeaderParam.replace("Bearer ", "");
-        return jwtService.extractUsername(authHeader);
-    }
-
+    @Transactional(readOnly = true)
     public List<SessionResponse> getSession(final String username) {
         log.info("Looking for all sessions owned by {}", username);
 
@@ -65,15 +59,22 @@ public final class SessionService {
         }
 
         return sessions.stream()
-                .map(s -> new SessionResponse(s.getSessionId(), owner.getUserName()))
+                .map(s -> new SessionResponse(s.getSessionId(),
+                                                      s.getPlayedAt().toString(),
+                                                      s.getGames()
+                                                          .stream()
+                                                          .map(Game::getGametype)
+                                                          .map(g -> new GametypeResponse(
+                                                                  g.getGametype()))
+                                                          .toList(),
+                                                      s.isActive()))
                 .collect(Collectors.toList());
     }
 
-    public SessionResponse startSession(final Optional<List<GameRequest>> games,
+    @Transactional
+    public SessionResponse createSession(final Optional<List<GameRequest>> games,
                                          final Optional<Set<UserRequest>> players,
-                                         final String authHeader) {
-
-        String username = getUserFromAuthHeader(authHeader);
+                                         final String username) {
         log.info("Attempting to create session for {}", username);
 
         User owner = userRepository.findByUserName(username)
@@ -109,12 +110,17 @@ public final class SessionService {
 
         sessionRepository.save(session);
         log.info("Session created successfully for {}", username);
-        return new SessionResponse(session.getSessionId(), owner.getUserName());
+        return new SessionResponse(session.getSessionId(),
+                                    session.getPlayedAt().toString(),
+                                    session.getGames().stream()
+                                            .map(Game::getGametype)
+                                            .map(g -> new GametypeResponse(
+                                                    g.getGametype()))
+                                            .toList(),
+                                    session.isActive());
     }
 
-    public void deleteSession(final String sessionId, final String authHeader) {
-
-        String username = getUserFromAuthHeader(authHeader);
+    public void deleteSession(final String sessionId, final String username) {
         log.info("{} wants to delete session {}", username, sessionId);
 
         Session session = sessionRepository.findById(toLong(sessionId))
@@ -127,13 +133,13 @@ public final class SessionService {
 
         // If session is not active and user is not the owner, or user is not admin
         boolean canDelete = (isOwner && session.isActive())
-                || (isAdmin && !isOwner && !session.isActive());
+                || isAdmin;
 
         if (!canDelete) {
             throw new AccessDeniedException();
         }
 
-        sessionRepository.deleteById(toLong(sessionId));
+        sessionRepository.delete(session);
         log.info("Successfully deleted session {}", sessionId);
     }
 }
