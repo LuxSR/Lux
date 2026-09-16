@@ -2,6 +2,7 @@ package lux.dartgame.service;
 
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
 import lux.dartgame.exception.AccessDeniedException;
@@ -18,6 +19,7 @@ import lux.dartgame.repository.GametypeRepository;
 import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +30,7 @@ import static org.apache.commons.lang3.math.NumberUtils.toLong;
 
 @Slf4j
 @Service
-public final class SessionService {
+public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
@@ -43,6 +45,7 @@ public final class SessionService {
         this.gametypeRepository = gametypeRepositoryParam;
     }
 
+    @Transactional(readOnly = true)
     public List<SessionResponse> getSession(final String username) {
         log.info("Looking for all sessions owned by {}", username);
 
@@ -58,12 +61,17 @@ public final class SessionService {
         return sessions.stream()
                 .map(s -> new SessionResponse(s.getSessionId(),
                                                       s.getPlayedAt().toString(),
-                                                      s.getGames().stream()
-                                                              .map(Game::getGametype).toList(),
+                                                      s.getGames()
+                                                          .stream()
+                                                          .map(Game::getGametype)
+                                                          .map(g -> new GametypeResponse(
+                                                                  g.getGametype()))
+                                                          .toList(),
                                                       s.isActive()))
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public SessionResponse createSession(final Optional<List<GameRequest>> games,
                                          final Optional<Set<UserRequest>> players,
                                          final String username) {
@@ -104,7 +112,11 @@ public final class SessionService {
         log.info("Session created successfully for {}", username);
         return new SessionResponse(session.getSessionId(),
                                     session.getPlayedAt().toString(),
-                                    session.getGames().stream().map(Game::getGametype).toList(),
+                                    session.getGames().stream()
+                                            .map(Game::getGametype)
+                                            .map(g -> new GametypeResponse(
+                                                    g.getGametype()))
+                                            .toList(),
                                     session.isActive());
     }
 

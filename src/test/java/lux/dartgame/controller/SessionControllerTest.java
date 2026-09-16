@@ -2,9 +2,9 @@ package lux.dartgame.controller;
 
 import lux.dartgame.dto.CreateSessionRequest;
 import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
-import lux.dartgame.model.Gametype;
 import lux.dartgame.service.SessionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,10 +40,8 @@ class SessionControllerTest {
         return principal;
     }
 
-    private Gametype gametype(final String name) {
-        Gametype gametype = new Gametype();
-        gametype.setGametype(name);
-        return gametype;
+    private GametypeResponse gametype(final String name) {
+        return new GametypeResponse(name);
     }
 
     @Test
