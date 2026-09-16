@@ -1,5 +1,4 @@
 package lux.dartgame.dto;
 
-public record GametypeResponse(long id,
-                               String gamemode) {
+public record GametypeResponse(String gamemode) {
 }

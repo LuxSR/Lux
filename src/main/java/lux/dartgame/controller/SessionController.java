@@ -29,7 +29,7 @@ public final class SessionController {
     public SessionResponse createSession(final @RequestBody(required = false)
                                                 CreateSessionRequest request,
                                          final Principal principal) {
-        return sessionService.startSession(
+        return sessionService.createSession(
                 Optional.ofNullable(request != null ? request.games() : null),
                 Optional.ofNullable(request != null ? request.players() : null),
                 principal.getName());

@@ -23,7 +23,7 @@ public final class GametypeService {
     public List<GametypeResponse> findAll() {
         log.info("Fetching all gametypes");
         return gametypeRepository.findAll().stream()
-                .map(gt -> new GametypeResponse(gt.getGametypeId(), gt.getGametype()))
+                .map(gt -> new GametypeResponse(gt.getGametype()))
                 .collect(Collectors.toList());
     }
 }

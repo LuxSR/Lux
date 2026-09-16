@@ -56,11 +56,15 @@ public final class SessionService {
         }
 
         return sessions.stream()
-                .map(s -> new SessionResponse(s.getSessionId(), owner.getUserName()))
+                .map(s -> new SessionResponse(s.getSessionId(),
+                                                      s.getPlayedAt().toString(),
+                                                      s.getGames().stream()
+                                                              .map(Game::getGametype).toList(),
+                                                      s.isActive()))
                 .collect(Collectors.toList());
     }
 
-    public SessionResponse startSession(final Optional<List<GameRequest>> games,
+    public SessionResponse createSession(final Optional<List<GameRequest>> games,
                                          final Optional<Set<UserRequest>> players,
                                          final String username) {
         log.info("Attempting to create session for {}", username);
@@ -98,7 +102,10 @@ public final class SessionService {
 
         sessionRepository.save(session);
         log.info("Session created successfully for {}", username);
-        return new SessionResponse(session.getSessionId(), owner.getUserName());
+        return new SessionResponse(session.getSessionId(),
+                                    session.getPlayedAt().toString(),
+                                    session.getGames().stream().map(Game::getGametype).toList(),
+                                    session.isActive());
     }
 
     public void deleteSession(final String sessionId, final String username) {
