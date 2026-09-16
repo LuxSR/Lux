@@ -26,16 +26,16 @@ class GameModeControllerTest {
     @Test
     void findAllModes_delegatesToServiceAndReturnsAllModes() {
         List<GametypeResponse> responses = List.of(
-                new GametypeResponse(1L, "501"),
-                new GametypeResponse(2L, "301"));
+                new GametypeResponse("501"),
+                new GametypeResponse("301"));
 
         when(gametypeService.findAll()).thenReturn(responses);
 
         List<GametypeResponse> result = gameModeController.findAllModes();
 
         assertThat(result).containsExactly(
-                new GametypeResponse(1L, "501"),
-                new GametypeResponse(2L, "301"));
+                new GametypeResponse("501"),
+                new GametypeResponse("301"));
         verify(gametypeService).findAll();
     }
 }

@@ -38,8 +38,8 @@ class GametypeServiceTest {
         List<GametypeResponse> result = gametypeService.findAll();
 
         assertThat(result).containsExactly(
-                new GametypeResponse(1L, "501"),
-                new GametypeResponse(2L, "301"));
+                new GametypeResponse("501"),
+                new GametypeResponse("301"));
     }
 
     @Test
