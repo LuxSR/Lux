@@ -47,15 +47,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         http
+                // REVIEW(sec): CSRF disabled is correct while the token travels in the Authorization header. It stops being correct the moment the token moves into a cookie.
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // REVIEW(good): deny by default with an explicit permitAll for /api/auth/**. This is the right way round, and it is what paws-and-requests gets wrong.
+                // REVIEW(azure): springdoc is on the classpath but /v3/api-docs and /swagger-ui/** are not permitted here, so the Swagger UI is unreachable. Either permit those paths (dev profile only) or drop the dependency.
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
+                // REVIEW(good): explicit 401 and 403 handlers instead of a redirect to a login page. Exactly right for an API.
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED))

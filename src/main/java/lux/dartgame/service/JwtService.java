@@ -22,12 +22,15 @@ public final class JwtService {
     private final long expirationMinutes;
 
     public JwtService(final JwtProperties properties) {
+        // REVIEW(bug): if JWT_SECRET is not valid base64, or decodes to fewer than 32 bytes, this throws inside a constructor and the container crash-loops with an error that does not mention the secret. Validate it in JwtProperties (a @Size on the decoded length) and document the expected format.
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder()
                 .decode(properties.secret()));
         this.expirationMinutes = properties.expirationMinutes();
     }
 
+    // REVIEW(sec): the token carries only the subject. That is a deliberate, defensible choice (it means a revoked role takes effect immediately), but it is why every request costs a user lookup. Just know which trade you picked.
     public String generateToken(final UserDetails userDetails) {
+        // REVIEW(noob): logging a username at INFO on every token generation. Fine here, but get into the habit of asking whether a log line would be acceptable once this is real user data in a cloud log sink.
         log.info("Generating token for user: {}", userDetails.getUsername());
         Instant now = Instant.now();
         Instant expiry = now.plusSeconds(expirationMinutes * Constants.SECONDS_PER_MINUTE);

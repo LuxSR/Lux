@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
+// REVIEW(api): every handler returns a bare String, so error responses are text/plain while everything else is JSON and the frontend cannot parse both with one code path. Return ProblemDetail (built into Spring 6) or a small record.
+// REVIEW(noob): there is no fallback @ExceptionHandler(Exception.class). Anything you did not anticipate returns the container's default error body, which in a cloud deployment is where stack traces leak.
 public final class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -36,6 +38,7 @@ public final class GlobalExceptionHandler {
         return e.getMessage();
     }
 
+    // REVIEW(good): a fixed 'Invalid username or password' for bad credentials, so the endpoint cannot be used to find out which usernames exist.
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(BadCredentialsException.class)
     public String handleBadCredentials(final BadCredentialsException e) {

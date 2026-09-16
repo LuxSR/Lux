@@ -1,3 +1,4 @@
+-- REVIEW(noob): a Flyway migration that starts by dropping tables is a warning sign. V1 runs exactly once against a given database, so these DROPs only help when someone re-edits V1 after it has already been applied, which Flyway will then reject on the checksum anyway. Once a migration has run anywhere but your own laptop, it is immutable: add V7 instead.
 DROP TABLE IF EXISTS session_mm_users;
 DROP TABLE IF EXISTS game_mm_gametypes;
 DROP TABLE IF EXISTS gamestats;

@@ -47,6 +47,7 @@ public final class AuthService {
         this.passwordEncoder = passwordEncoderParam;
     }
 
+    // REVIEW(good): delegating to AuthenticationManager rather than comparing hashes by hand. This is the idiomatic version and it picks up the account-status checks for free.
     public TokenResponse login(final LoginRequest request) {
         log.info("Login attempt for user: {}", request.username());
         Authentication authentication = authenticationManager.authenticate(
@@ -60,6 +61,7 @@ public final class AuthService {
     }
 
 
+    // REVIEW(noob): register does two existence checks and then a save, with no @Transactional and no unique-constraint fallback. Two requests racing with the same username both pass the check and one dies on the database constraint with a 500. The schema does have the UNIQUE, so catch DataIntegrityViolationException and turn it into the same 409.
     public TokenResponse register(final RegisterRequest request) {
         log.info("Registration attempt for user: {}", request.username());
         if (userRepository.existsByUserName(request.username())) {
@@ -85,6 +87,7 @@ public final class AuthService {
         );
     }
 
+    // REVIEW(noob): this builds a second, parallel UserDetails from the entity while AppUserDetailsService already knows how to do exactly that. Two ways to build the same object drift apart; call the UserDetailsService, or extract one mapper both use.
     private UserDetails asUserDetails(final User user) {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUserName())

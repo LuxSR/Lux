@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
+// REVIEW(noob): extend OncePerRequestFilter instead of implementing the raw servlet Filter. A plain Filter can run more than once per request (forwards, async and error dispatches), so you redo the parse and the user lookup. OncePerRequestFilter is the idiom and gives you shouldNotFilter for skipping /api/auth.
 public final class JwtAuthenticationFilter implements Filter {
 
     private static final String HEADER = "Authorization";
@@ -74,6 +75,7 @@ public final class JwtAuthenticationFilter implements Filter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
+        // REVIEW(sec): catching bare Exception and continuing means an expired or tampered token behaves exactly like no token at all. Here it is survivable because the chain denies by default, but you get no signal at all that tokens are being rejected. Catch JwtException, log at debug, and let anything else bubble.
         } catch (Exception e) {
             // Bad token: leave the context empty and let authorization reject it.
             SecurityContextHolder.clearContext();

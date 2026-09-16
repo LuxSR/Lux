@@ -40,6 +40,7 @@
         </dependency>
 
         <!-- Devtools for local development -->
+        <!-- REVIEW(azure): devtools is correctly marked optional, so it will not end up in the fat jar. Worth knowing why: optional stops it being transitive, and Boot also disables it when it detects a packaged jar. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -89,6 +90,7 @@
         <!-- Swagger / OpenAPI -->
         <dependency>
             <groupId>org.springdoc</groupId>
+            <!-- REVIEW(noob): springdoc 2.0.2 targets Spring Boot 3.0. This project is on Boot 3.5.14, and that mismatch shows up as a startup failure or a blank Swagger page rather than a clear error. Use a 2.7.x or 2.8.x release and check the compatibility table. -->
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.0.2</version>
         </dependency>
@@ -123,6 +125,7 @@
 
         <!-- H2 in memory database -->
         <dependency>
+            <!-- REVIEW(azure): H2 is at runtime scope in the production build although the app runs on PostgreSQL everywhere. Move it to test scope so it cannot accidentally become the datasource in a deployed container. -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
@@ -130,6 +133,7 @@
 
         <!-- PostgreSQL driver -->
         <dependency>
+            <!-- REVIEW(noob): the Boot parent already manages the PostgreSQL driver version. Pinning it by hand here means you silently opt out of the version Boot tested against. Delete the version tag. -->
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.12</version>
