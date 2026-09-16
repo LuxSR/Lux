@@ -34,22 +34,13 @@ public final class SessionService {
     private final UserRepository userRepository;
     private final GametypeRepository gametypeRepository;
 
-    private final JwtService jwtService;
-
     @Autowired
     public SessionService(final SessionRepository sessionRepositoryParam,
                           final UserRepository userRepositoryParam,
-                          final GametypeRepository gametypeRepositoryParam,
-                          final JwtService jwtServiceParam) {
+                          final GametypeRepository gametypeRepositoryParam) {
         this.sessionRepository = sessionRepositoryParam;
         this.userRepository = userRepositoryParam;
         this.gametypeRepository = gametypeRepositoryParam;
-        this.jwtService = jwtServiceParam;
-    }
-
-    private String getUserFromAuthHeader(final String authHeaderParam) {
-        String authHeader = authHeaderParam.replace("Bearer ", "");
-        return jwtService.extractUsername(authHeader);
     }
 
     public List<SessionResponse> getSession(final String username) {
@@ -71,9 +62,7 @@ public final class SessionService {
 
     public SessionResponse startSession(final Optional<List<GameRequest>> games,
                                          final Optional<Set<UserRequest>> players,
-                                         final String authHeader) {
-
-        String username = getUserFromAuthHeader(authHeader);
+                                         final String username) {
         log.info("Attempting to create session for {}", username);
 
         User owner = userRepository.findByUserName(username)
@@ -112,9 +101,7 @@ public final class SessionService {
         return new SessionResponse(session.getSessionId(), owner.getUserName());
     }
 
-    public void deleteSession(final String sessionId, final String authHeader) {
-
-        String username = getUserFromAuthHeader(authHeader);
+    public void deleteSession(final String sessionId, final String username) {
         log.info("{} wants to delete session {}", username, sessionId);
 
         Session session = sessionRepository.findById(toLong(sessionId))
@@ -127,13 +114,13 @@ public final class SessionService {
 
         // If session is not active and user is not the owner, or user is not admin
         boolean canDelete = (isOwner && session.isActive())
-                || (isAdmin && !isOwner && !session.isActive());
+                || isAdmin;
 
         if (!canDelete) {
             throw new AccessDeniedException();
         }
 
-        sessionRepository.deleteById(toLong(sessionId));
+        sessionRepository.delete(session);
         log.info("Successfully deleted session {}", sessionId);
     }
 }
