@@ -19,7 +19,11 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     unauthorizedHandler?.();
     throw new Error('Unauthorized');
   }
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  if (!res.ok) {
+    const err = new Error(`Request failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
   return res.json();
 }
 
@@ -41,12 +45,12 @@ export function login({ username, password }) {
 
 export function getSessions() {
   const token = localStorage.getItem('token');
-  const username = getUsername(token)
-  return request(`/api/session?username=${encodeURIComponent(username)}`)
+  const username = getUsername(token);
+  return request(`/api/session?username=${encodeURIComponent(username)}`);
 }
 
 export function getAllGamemodes() {
-  return request('/api/gamemodes')
+  return request('/api/gamemodes');
 }
 
 function getUsername(token) {

@@ -235,3 +235,8 @@
 .error-message {
   color: var(--color-error);
 }
+
+.state-message {
+  color: var(--color-text-muted);
+  padding: var(--space-4) 0;
+}

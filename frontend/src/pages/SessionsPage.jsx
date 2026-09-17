@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SessionsList from '../components/SessionsList';
 
 export default function SessionsPage() {
   const [, setShowCreate] = useState(false);
@@ -16,7 +17,7 @@ export default function SessionsPage() {
           Create Session
         </button>
       </div>
-      <div className="sessions-list">{/* TODO: add SessionsList */}</div>
+      <SessionsList />
     </div>
   );
 }
