@@ -11,7 +11,7 @@ export default function SidebarMenu() {
         type="button"
         onClick={() => setCollapsed(!collapsed)}
       >
-        {collapsed ? 'Expand' : 'Collapse'}
+        {collapsed ? '»' : '«'}
       </button>
       <nav className="sidebar-nav">
         <NavLink to="/sessions" className="sidebar-link">
