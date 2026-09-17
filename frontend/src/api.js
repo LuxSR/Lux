@@ -1,3 +1,5 @@
+import { jwtDecode } from 'jwt-decode';
+
 let unauthorizedHandler = null;
 
 export function setUnauthorizedHandler(fn) {
@@ -35,4 +37,19 @@ export function login({ username, password }) {
     body: { username, password },
     auth: false,
   });
+}
+
+export function getSessions() {
+  const token = localStorage.getItem('token');
+  const username = getUsername(token)
+  return request(`/session?username=${encodeURIComponent(username)}`)
+}
+
+export function getAllGamemodes() {
+  return request('/gamemodes')
+}
+
+function getUsername(token) {
+  const payload = jwtDecode(token);
+  return payload.sub;
 }
