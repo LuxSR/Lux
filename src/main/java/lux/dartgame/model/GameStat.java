@@ -1,5 +1,6 @@
 package lux.dartgame.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -29,7 +30,11 @@ public class GameStat {
     @MapsId("gameId")
     private Game game;
 
-    private float avgPoints;
+    @Column(name = "position", nullable = false)
+    private int position;
+
+    private int points;
+    private int turn;
     private int triple20s;
     private int bullseyes;
     private int highestScore;

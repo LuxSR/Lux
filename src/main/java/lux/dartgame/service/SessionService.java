@@ -10,6 +10,7 @@ import lux.dartgame.exception.GameModeNotFoundException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.model.Game;
+import lux.dartgame.model.GameStat;
 import lux.dartgame.model.Gametype;
 import lux.dartgame.model.Session;
 import lux.dartgame.model.User;
@@ -21,7 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -98,13 +103,34 @@ public class SessionService {
             session.addPlayers(owner);
         }
 
+        List<User> orderedPlayers = new ArrayList<>(session.getPlayers());
+        orderedPlayers.sort(Comparator.comparing(User::getUserId));
+
         if (games.isPresent()) {
+            int n = orderedPlayers.size();
+            Map<String, Integer> gametypeCounts = new HashMap<>();
+
             for (GameRequest gamemode : games.get()) {
                 Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
                         .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
+
+                int occurrence = gametypeCounts.getOrDefault(gametype.getGametype(), 0);
+                gametypeCounts.put(gametype.getGametype(), occurrence + 1);
+                int offset = n == 0 ? 0 : occurrence % n;
+
                 Game game = new Game();
                 game.setGametype(gametype);
+                game.setNrOfPlayers(n);
                 session.addGame(game);
+
+                for (int i = 0; i < n; i++) {
+                    GameStat stat = new GameStat();
+                    stat.setUser(orderedPlayers.get((i + offset) % n));
+                    stat.setGame(game);
+                    stat.setPosition(i);
+                    game.getGameStats().add(stat);
+                }
+
             }
         }
 
