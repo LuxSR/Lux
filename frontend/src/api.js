@@ -42,11 +42,11 @@ export function login({ username, password }) {
 export function getSessions() {
   const token = localStorage.getItem('token');
   const username = getUsername(token)
-  return request(`/session?username=${encodeURIComponent(username)}`)
+  return request(`/api/session?username=${encodeURIComponent(username)}`)
 }
 
 export function getAllGamemodes() {
-  return request('/gamemodes')
+  return request('/api/gamemodes')
 }
 
 function getUsername(token) {
