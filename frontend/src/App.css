@@ -240,3 +240,73 @@
   color: var(--color-text-muted);
   padding: var(--space-4) 0;
 }
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  width: min(480px, 90vw);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal h2 {
+  margin-bottom: var(--space-4);
+}
+
+/* ===== Gamemode picker ===== */
+.gamemode-picker-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.gamemode-picker-row select {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.gamemode-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.gamemode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface-hover);
+  border-radius: 999px;
+  padding: 2px var(--space-2) 2px var(--space-3);
+}
+
+.gamemode-pill button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}

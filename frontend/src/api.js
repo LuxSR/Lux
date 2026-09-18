@@ -50,7 +50,14 @@ export function getSessions() {
 }
 
 export function getAllGamemodes() {
-  return request('/api/gamemodes');
+  return request('/api/gamemode');
+}
+
+export function createSession({ gamemodes }) {
+  return request('/api/session', {
+    method: 'POST',
+    body: { games: gamemodes.map((gamemode) => ({ gameType: gamemode })) },
+  });
 }
 
 function getUsername(token) {

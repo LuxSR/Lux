@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import SessionsList from '../components/SessionsList';
+import CreateSession from '../components/CreateSession';
 
 export default function SessionsPage() {
-  const [, setShowCreate] = useState(false);
-  // TODO: do something with the showCreate state
+  const [showCreate, setShowCreate] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="page sessions-page">
@@ -17,7 +18,16 @@ export default function SessionsPage() {
           Create Session
         </button>
       </div>
-      <SessionsList />
+      <SessionsList key={refreshKey} />
+      {showCreate && (
+        <CreateSession
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setRefreshKey((k) => k + 1);
+            setShowCreate(false);
+          }}
+        />
+      )}
     </div>
   );
 }
