@@ -53,6 +53,16 @@ export function getAllGamemodes() {
   return request('/api/gamemode');
 }
 
+export function getSessionById(id) {
+  return request(`/api/session/${id}`);
+}
+
+export function startGame({ sessionId, gameType }) {
+  return request(
+    `/api/session/games?sessionId=${sessionId}&gametype=${gameType}`
+  );
+}
+
 export function createSession({ gamemodes }) {
   return request('/api/session', {
     method: 'POST',
