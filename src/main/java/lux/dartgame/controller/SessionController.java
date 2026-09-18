@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/session")
+@RequestMapping("api/session")
 public final class SessionController {
     private final SessionService sessionService;
 
