@@ -128,6 +128,7 @@ public class SessionService {
                     stat.setUser(orderedPlayers.get((i + offset) % n));
                     stat.setGame(game);
                     stat.setPosition(i);
+                    stat.setTurn(0);
                     game.getGameStats().add(stat);
                 }
 

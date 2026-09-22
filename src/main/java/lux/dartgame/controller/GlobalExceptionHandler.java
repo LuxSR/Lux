@@ -4,6 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.GameStatNotFoundException;
+import lux.dartgame.exception.InvalidScoreException;
+import lux.dartgame.exception.InvalidTurnException;
+import lux.dartgame.exception.NoAvailableGameException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.SessionNotFoundException;
@@ -52,6 +56,14 @@ public final class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
     }
 
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(InvalidScoreException.class)
+    public String handleInvalidScore(final InvalidScoreException e) {
+        log.error("INVALID SCORE", e);
+        return e.getMessage();
+    }
+
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RoleNotFoundException.class)
     public String handleRoleNotFound(final RoleNotFoundException e) {
@@ -87,10 +99,31 @@ public final class GlobalExceptionHandler {
         return e.getMessage();
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(GameStatNotFoundException.class)
+    public String handleGameStatNotFound(final GameStatNotFoundException e) {
+        log.warn("Gametype not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NoAvailableGameException.class)
+    public String handleGameNotAvailable(final NoAvailableGameException e) {
+        log.warn("Game not available in this session: {}", e.getMessage());
+        return e.getMessage();
+    }
+
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccessDeniedException.class)
     public String handleAccessDenied(final AccessDeniedException e) {
         log.warn("Access denied: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(InvalidTurnException.class)
+    public String handleInvalidTurn(final InvalidTurnException e) {
+        log.warn("Invalid turn: {}", e.getMessage());
         return e.getMessage();
     }
 }
