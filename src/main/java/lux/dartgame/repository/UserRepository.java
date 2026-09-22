@@ -10,6 +10,10 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserName(String username);
 
+    // Field is called userName, to follow convention explicitly defined query
+    @Query("SELECT u.userName FROM User u WHERE u.userId = :id")
+    Optional<String> findUserNameById(@Param("id") Long id);
+
     boolean existsByUserName(String username);
 
     boolean existsByEmail(String email);

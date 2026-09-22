@@ -51,6 +51,9 @@ public class Game {
     @ManyToOne
     private User winner;
 
+    @NotNull
+    private int nrOfPlayers;
+
     // A game can have many gamestats (one per participating user)
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GameStat> gameStats = new ArrayList<>();
