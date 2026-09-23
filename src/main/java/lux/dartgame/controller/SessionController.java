@@ -55,7 +55,7 @@ public final class SessionController {
         return sessionService.displaySession(id);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("{id}/finished-games")
     public List<FinishedGameResponse> getAllFinishedGames(final @PathVariable long id) {
         return sessionService.getAllFinishedGames(id);
     }
