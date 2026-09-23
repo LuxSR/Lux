@@ -363,3 +363,16 @@
 .session-detail-empty {
   margin-top: var(--space-3);
 }
+
+/* ===== Game page (placeholder) ===== */
+.game-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.game-page-placeholder {
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+}
