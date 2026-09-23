@@ -193,7 +193,7 @@ class GameServiceTest {
         when(userRepository.findByUserName("ghost")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("ghost", "20 3", GAME_ID, SESSION_ID), "ghost"))
+                new PlayedRoundRequest("ghost", "20 3", GAME_ID), "ghost", SESSION_ID))
                 .isInstanceOf(UsernameNotFoundException.class);
     }
 
@@ -204,7 +204,7 @@ class GameServiceTest {
         when(gameRepository.findById(GAME_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(NoAvailableGameException.class);
     }
 
@@ -218,7 +218,7 @@ class GameServiceTest {
         when(sessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(SessionNotFoundException.class);
     }
 
@@ -236,7 +236,7 @@ class GameServiceTest {
         when(sessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(AccessDeniedException.class);
     }
 
@@ -252,7 +252,7 @@ class GameServiceTest {
         when(sessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(InvalidTurnException.class);
     }
 
@@ -270,7 +270,7 @@ class GameServiceTest {
         when(sessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(InvalidTurnException.class);
     }
 
@@ -288,7 +288,7 @@ class GameServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice"))
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID))
                 .isInstanceOf(GameStatNotFoundException.class);
     }
 
@@ -308,8 +308,8 @@ class GameServiceTest {
                 .thenReturn(Optional.of(aliceStat));
 
         assertThatThrownBy(() -> gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3 20 3 20 1 20 1 3 1", GAME_ID, SESSION_ID),
-                "alice"))
+                new PlayedRoundRequest("alice", "20 3 20 3 20 1 20 1 3 1", GAME_ID),
+                "alice", SESSION_ID))
                 .isInstanceOf(InvalidScoreException.class);
 
         assertThat(aliceStat.getPoints()).isEqualTo(100);
@@ -333,7 +333,7 @@ class GameServiceTest {
         when(userRepository.getReferenceById(2L)).thenReturn(bob);
 
         GameResponse response = gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice");
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID);
 
         assertThat(response.gametype()).isEqualTo("301");
         assertThat(response.turn()).isEqualTo("bob");
@@ -360,7 +360,7 @@ class GameServiceTest {
                 .thenReturn(Optional.of(aliceStat));
 
         GameResponse response = gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice");
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID);
 
         assertThat(response.turn()).isEqualTo("alice");
         assertThat(response.isFinished()).isTrue();
@@ -385,7 +385,7 @@ class GameServiceTest {
         when(userRepository.getReferenceById(2L)).thenReturn(bob);
 
         GameResponse response = gameService.playRound(
-                new PlayedRoundRequest("alice", "20 3", GAME_ID, SESSION_ID), "alice");
+                new PlayedRoundRequest("alice", "20 3", GAME_ID), "alice", SESSION_ID);
 
         assertThat(response.turn()).isEqualTo("bob");
         assertThat(response.isFinished()).isFalse();
