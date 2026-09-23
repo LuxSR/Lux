@@ -1,6 +1,8 @@
 package lux.dartgame.controller;
 
 import lux.dartgame.dto.CreateSessionRequest;
+import lux.dartgame.dto.FinishedGameResponse;
+import lux.dartgame.dto.GameResponse;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.service.SessionService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,5 +53,10 @@ public final class SessionController {
     @GetMapping("{id}")
     public SessionResponse getSession(final @PathVariable long id) {
         return sessionService.displaySession(id);
+    }
+
+    @GetMapping("{id}")
+    public List<FinishedGameResponse> getAllFinishedGames(final @PathVariable long id) {
+        return sessionService.getAllFinishedGames(id);
     }
 }
