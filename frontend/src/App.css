@@ -364,15 +364,105 @@
   margin-top: var(--space-3);
 }
 
-/* ===== Game page (placeholder) ===== */
-.game-page {
+/* ===== Game page ===== */
+.game-page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.game-scoreboard {
+  width: min(420px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.game-scoreboard-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+}
+
+.game-scoreboard-row + .game-scoreboard-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.game-scoreboard-turn {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.game-round-panel {
+  width: min(560px, 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
+  margin-top: var(--space-3);
 }
 
-.game-page-placeholder {
+.game-dart-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.game-dart-slot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.game-dart-slot label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 0.85rem;
   color: var(--color-text-muted);
-  font-size: 1.25rem;
+}
+
+.game-dart-slot select {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.game-dart-slot select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.game-round-total {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.game-register:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-winner {
+  width: min(560px, 100%);
+  padding: var(--space-5);
+  text-align: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.game-winner h2 {
+  color: var(--color-success);
+  margin-bottom: var(--space-2);
 }
