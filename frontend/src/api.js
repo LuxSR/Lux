@@ -59,7 +59,7 @@ export function getSessionById(id) {
 
 export function startGame({ sessionId, gameType }) {
   return request(
-    `/api/session/games?sessionId=${sessionId}&gametype=${gameType}`
+    `/api/session/${sessionId}/games?gametype=${gameType}`
   );
 }
 
