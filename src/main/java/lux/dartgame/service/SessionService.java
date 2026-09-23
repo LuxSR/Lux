@@ -1,6 +1,7 @@
 package lux.dartgame.service;
 
 import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.dto.FinishedGameResponse;
 import lux.dartgame.dto.GameRequest;
 import lux.dartgame.dto.GametypeResponse;
 import lux.dartgame.dto.SessionResponse;
@@ -65,6 +66,20 @@ public class SessionService {
                                                     g.getGametype()))
                                             .toList(),
                                     session.isActive());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FinishedGameResponse> getAllFinishedGames(final long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                                           .orElseThrow(SessionNotFoundException::new);
+       return session.getGames()
+                     .stream()
+                     .filter(g -> g.getWinner() != null)
+                     .map(g -> new FinishedGameResponse(
+                                           g.getGametype().getGametype(),
+                                           g.getGameId(),
+                                           g.getWinner().getUserName()))
+                     .toList();
     }
 
     @Transactional(readOnly = true)
