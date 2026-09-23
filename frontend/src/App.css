@@ -207,6 +207,29 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
+/* ===== Game type card ===== */
+.game-type-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.game-type-card-label {
+  color: var(--color-text);
+}
+
+.game-type-card-start:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.game-type-card-finished {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 /* ===== Forms ===== */
 .form {
   display: flex;
@@ -309,4 +332,34 @@
   justify-content: flex-end;
   gap: var(--space-2);
   margin-top: var(--space-4);
+}
+
+/* ===== Session detail page ===== */
+.session-detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.session-detail-back {
+  text-decoration: none;
+}
+
+.session-detail-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.session-detail-games {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.session-detail-empty {
+  margin-top: var(--space-3);
 }
