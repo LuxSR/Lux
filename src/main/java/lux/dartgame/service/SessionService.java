@@ -51,6 +51,23 @@ public class SessionService {
     }
 
     @Transactional(readOnly = true)
+    public SessionResponse displaySession(final long sessionId) {
+
+        Session session = sessionRepository.findById(sessionId)
+                                           .orElseThrow(SessionNotFoundException::new);
+
+        return new SessionResponse(sessionId,
+                                   session.getPlayedAt().toString(),
+                                    session.getGames()
+                                            .stream()
+                                            .map(Game::getGametype)
+                                            .map(g -> new GametypeResponse(
+                                                    g.getGametype()))
+                                            .toList(),
+                                    session.isActive());
+    }
+
+    @Transactional(readOnly = true)
     public List<SessionResponse> getSession(final String username) {
         log.info("Looking for all sessions owned by {}", username);
 
