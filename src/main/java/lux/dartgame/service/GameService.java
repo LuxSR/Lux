@@ -166,7 +166,8 @@ public class GameService {
 
     @Transactional
     public GameResponse playRound(final PlayedRoundRequest roundResults,
-                                  final String player) {
+                                  final String player,
+                                  final long id) {
 
         User user = userRepository.findByUserName(roundResults.username())
                 .orElseThrow(UsernameNotFoundException::new);
@@ -174,7 +175,7 @@ public class GameService {
         Game game = gameRepository.findById(roundResults.gameId())
                 .orElseThrow(NoAvailableGameException::new);
 
-        Session session = sessionRepository.findById(roundResults.sessionId())
+        Session session = sessionRepository.findById(id)
                 .orElseThrow(SessionNotFoundException::new);
 
         boolean isMember = session.getOwner().getUserName().equals(player)
