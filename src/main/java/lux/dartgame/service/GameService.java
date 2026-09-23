@@ -131,8 +131,12 @@ public class GameService {
             throw new InvalidScoreException();
         }
 
-        if (results.isEmpty() || results.size() % 2 != 0) {
-            // empty input, or e.g. "20 3 5" (odd count of numbers)
+        if (results.isEmpty()) {
+            return new int[]{0, 0, 0};
+        }
+
+        if (results.size() % 2 != 0) {
+            // e.g. "20 3 5" (odd count of numbers)
             throw new InvalidScoreException();
         }
 
