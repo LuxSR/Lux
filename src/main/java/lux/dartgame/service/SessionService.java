@@ -1,28 +1,5 @@
 package lux.dartgame.service;
 
-import lombok.extern.slf4j.Slf4j;
-import lux.dartgame.dto.FinishedGameResponse;
-import lux.dartgame.dto.GameRequest;
-import lux.dartgame.dto.GametypeResponse;
-import lux.dartgame.dto.SessionResponse;
-import lux.dartgame.dto.UserRequest;
-import lux.dartgame.exception.AccessDeniedException;
-import lux.dartgame.exception.GameModeNotFoundException;
-import lux.dartgame.exception.NoSessionsForThisUserException;
-import lux.dartgame.exception.SessionNotFoundException;
-import lux.dartgame.model.Game;
-import lux.dartgame.model.GameStat;
-import lux.dartgame.model.Gametype;
-import lux.dartgame.model.Session;
-import lux.dartgame.model.User;
-import lux.dartgame.repository.SessionRepository;
-import lux.dartgame.repository.UserRepository;
-import lux.dartgame.repository.GametypeRepository;
-import lux.dartgame.exception.UsernameNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,6 +10,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.math.NumberUtils.toLong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.dto.FinishedGameResponse;
+import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
+import lux.dartgame.dto.SessionResponse;
+import lux.dartgame.dto.UserRequest;
+import lux.dartgame.exception.AccessDeniedException;
+import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.NoSessionsForThisUserException;
+import lux.dartgame.exception.SessionNotFoundException;
+import lux.dartgame.exception.UsernameNotFoundException;
+import lux.dartgame.model.Game;
+import lux.dartgame.model.GameStat;
+import lux.dartgame.model.Gametype;
+import lux.dartgame.model.Session;
+import lux.dartgame.model.User;
+import lux.dartgame.repository.GametypeRepository;
+import lux.dartgame.repository.SessionRepository;
+import lux.dartgame.repository.UserRepository;
 
 @Slf4j
 @Service
