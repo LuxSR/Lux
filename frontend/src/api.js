@@ -20,7 +20,8 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
-    const err = new Error(`Request failed: ${res.status}`);
+    const message = await res.text().catch(() => '');
+    const err = new Error(message || `Request failed: ${res.status}`);
     err.status = res.status;
     throw err;
   }
@@ -57,35 +58,61 @@ export function getSessionById(id) {
   return request(`/api/session/${id}`);
 }
 
-export function startGame({ sessionId, gameType }) {
-  return request(
+export async function startGame({ sessionId, gameType }) {
+  const res = await request(
     `/api/session/${sessionId}/games?gametype=${gameType}`
   );
+  // Seed the (mocked, display-only) scoreboard with the real first turn/gametype.
+  seedMockGame({ sessionId, gameId: res.gameId, gametype: gameType, turn: res.turn });
+  return res;
 }
 
-export function createSession({ gamemodes }) {
-  return request('/api/session', {
+export async function createSession({ gamemodes, players = [] }) {
+  const res = await request('/api/session', {
     method: 'POST',
-    body: { games: gamemodes.map((gamemode) => ({ gameType: gamemode })) },
+    body: {
+      games: gamemodes.map((gamemode) => ({ gameType: gamemode })),
+      players: players.map((username) => ({ username })),
+    },
   });
+  // Remember the roster (owner + opponents) so the mocked getGameState renders a
+  // full scoreboard. Opponents are added exactly as typed (no trimming).
+  sessionPlayers[res.id] = [
+    getUsername(localStorage.getItem('token')),
+    ...players,
+  ];
+  return res;
 }
 
 // TEMP mock store for game state (resets on page reload)
 const mockGames = {};
+// TEMP roster of each session (owner + opponents), feeding the mocked getGameState.
+const sessionPlayers = {};
 const MOCK_TARGET = { '301': 301, '501': 501 };
 
+export const MAX_TOTAL_PLAYERS = 10;
+
+// Seed (or return existing) mock game for display. Roster comes from the session
+// recorded at createSession time; falls back to owner-only for sessions with no
+// recorded roster (e.g. created before multiplayer was added).
+function seedMockGame({ sessionId, gameId, gametype = '301', turn }) {
+  if (mockGames[gameId]) return;
+  const roster =
+    sessionPlayers[sessionId] ?? [getUsername(localStorage.getItem('token'))];
+  mockGames[gameId] = {
+    sessionId,
+    gametype,
+    gameId: Number(gameId),
+    isFinished: false,
+    winner: null,
+    turn: turn ?? roster[0],
+    players: roster.map((username) => ({ username, points: 0 })),
+  };
+}
+
 function ensureMockGame({ sessionId, gameId }) {
-  const username = getUsername(localStorage.getItem('token'));
   if (!mockGames[gameId]) {
-    mockGames[gameId] = {
-      sessionId,
-      gametype: '301',
-      gameId: Number(gameId),
-      isFinished: false,
-      winner: null,
-      turn: username,
-      players: [{ username, points: 0 }],
-    };
+    seedMockGame({ sessionId, gameId });
   }
   return mockGames[gameId];
 }

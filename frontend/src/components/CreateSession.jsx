@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { createSession, getAllGamemodes } from '../api';
+import { createSession, getAllGamemodes, getUsername, MAX_TOTAL_PLAYERS } from '../api';
+
+const MAX_ADDED_PLAYERS = MAX_TOTAL_PLAYERS - 1;
 
 export default function CreateSession({ onClose, onCreated }) {
   const [available, setAvailable] = useState(null);
@@ -7,6 +9,12 @@ export default function CreateSession({ onClose, onCreated }) {
   const [pick, setPick] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const [players, setPlayers] = useState([]);
+  const [playerInput, setPlayerInput] = useState('');
+  const [playerError, setPlayerError] = useState('');
+
+  const owner = getUsername(localStorage.getItem('token'));
 
   useEffect(() => {
     getAllGamemodes()
@@ -25,15 +33,48 @@ export default function CreateSession({ onClose, onCreated }) {
     setSelected(selected.filter((_, i) => i !== index));
   }
 
+  function addPlayer() {
+    // TODO: consider trimming surrounding whitespace before exact-match (backend does not trim)
+    const username = playerInput;
+    if (!username.trim()) {
+      setPlayerError('Enter a username');
+      return;
+    }
+    if (username === owner) {
+      setPlayerError('That is you — you are already in the session');
+      return;
+    }
+    if (players.includes(username)) {
+      setPlayerError('That username is already added');
+      return;
+    }
+    if (players.length >= MAX_ADDED_PLAYERS) {
+      setPlayerError(`Max ${MAX_TOTAL_PLAYERS} players in total (including you)`);
+      return;
+    }
+    setPlayers([...players, username]);
+    setPlayerInput('');
+    setPlayerError('');
+  }
+
+  function removePlayer(index) {
+    setPlayers(players.filter((_, i) => i !== index));
+    setPlayerError('');
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     try {
-      await createSession({ gamemodes: selected });
+      await createSession({ gamemodes: selected, players });
       onCreated();
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.status === 404
+          ? 'One or more usernames not found — check the spelling'
+          : err.message
+      );
       setSubmitting(false);
     }
   }
@@ -85,6 +126,54 @@ export default function CreateSession({ onClose, onCreated }) {
               )}
             </div>
           )}
+          <div className="player-picker">
+            <div className="player-picker-header">
+              <h3>Players</h3>
+              <span className="player-counter">
+                {players.length + 1} / {MAX_TOTAL_PLAYERS}
+              </span>
+            </div>
+            <div className="player-chips">
+              <span className="player-chip player-chip-owner">{owner} (you)</span>
+              {players.map((username, index) => (
+                <span key={index} className="player-chip">
+                  {username}
+                  <button
+                    type="button"
+                    onClick={() => removePlayer(index)}
+                    aria-label={`Remove ${username}`}
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="player-picker-row">
+              <input
+                className="player-input"
+                type="text"
+                value={playerInput}
+                onChange={(e) => {
+                  setPlayerInput(e.target.value);
+                  setPlayerError('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addPlayer();
+                  }
+                }}
+                placeholder="Opponent username"
+              />
+              <button className="btn" type="button" onClick={addPlayer}>
+                Add
+              </button>
+            </div>
+            {playerError && <p className="error-message">{playerError}</p>}
+            <p className="player-hint">
+              Enter usernames exactly as registered — no search yet.
+            </p>
+          </div>
           <div className="modal-actions">
             <button className="btn" type="button" onClick={onClose}>
               Cancel
