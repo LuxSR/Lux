@@ -58,118 +58,62 @@ export function getSessionById(id) {
   return request(`/api/session/${id}`);
 }
 
+// Latest real GameResponse per game (turn/isFinished/gametype), written ONLY from
+// real backend responses (startGame/playRound). Resets on page reload.
+const gameResponses = {};
+
 export async function startGame({ sessionId, gameType }) {
-  const res = await request(
-    `/api/session/${sessionId}/games?gametype=${gameType}`
-  );
-  // Seed the (mocked, display-only) scoreboard with the real first turn/gametype.
-  seedMockGame({ sessionId, gameId: res.gameId, gametype: gameType, turn: res.turn });
+  const res = await request(`/api/session/${sessionId}/games?gametype=${gameType}`);
+  gameResponses[res.gameId] = res;
   return res;
 }
 
 export async function createSession({ gamemodes, players = [] }) {
-  const res = await request('/api/session', {
+  return request('/api/session', {
     method: 'POST',
     body: {
       games: gamemodes.map((gamemode) => ({ gameType: gamemode })),
       players: players.map((username) => ({ username })),
     },
   });
-  // Remember the roster (owner + opponents) so the mocked getGameState renders a
-  // full scoreboard. Opponents are added exactly as typed (no trimming).
-  sessionPlayers[res.id] = [
-    getUsername(localStorage.getItem('token')),
-    ...players,
-  ];
-  return res;
 }
-
-// TEMP mock store for game state (resets on page reload)
-const mockGames = {};
-// TEMP roster of each session (owner + opponents), feeding the mocked getGameState.
-const sessionPlayers = {};
-const MOCK_TARGET = { '301': 301, '501': 501 };
 
 export const MAX_TOTAL_PLAYERS = 10;
 
-// Seed (or return existing) mock game for display. Roster comes from the session
-// recorded at createSession time; falls back to owner-only for sessions with no
-// recorded roster (e.g. created before multiplayer was added).
-function seedMockGame({ sessionId, gameId, gametype = '301', turn }) {
-  if (mockGames[gameId]) return;
-  const roster =
-    sessionPlayers[sessionId] ?? [getUsername(localStorage.getItem('token'))];
-  mockGames[gameId] = {
-    sessionId,
-    gametype,
-    gameId: Number(gameId),
-    isFinished: false,
-    winner: null,
-    turn: turn ?? roster[0],
-    players: roster.map((username) => ({ username, points: 0 })),
+// Fetch current game state: players + points from the real stats endpoint,
+// turn/isFinished/gametype from the most recent real GameResponse.
+export async function getGameState({ sessionId, gameId }) {
+  const id = Number(gameId);
+  const stats = await request(`/api/session/${sessionId}/games/${id}/stats`);
+  const meta = gameResponses[id] ?? {};
+
+  let turn = meta.turn;
+  if (!turn) {
+    // Reload mid-game: no GameResponse cached — best-effort from stats
+    // (the player with the fewest turns is up next).
+    const minTurns = Math.min(...stats.map((s) => s.turns));
+    turn = stats.find((s) => s.turns === minTurns)?.userName;
+  }
+
+  const isFinished = Boolean(meta.isFinished);
+  return {
+    gameId: id,
+    gametype: meta.gametype,
+    isFinished,
+    winner: isFinished ? meta.turn : null,
+    turn,
+    players: stats.map((s) => ({ username: s.userName, points: s.points })),
   };
 }
 
-function ensureMockGame({ sessionId, gameId }) {
-  if (!mockGames[gameId]) {
-    seedMockGame({ sessionId, gameId });
-  }
-  return mockGames[gameId];
-}
-
-// Parse a round score string ("20 3 15 1") into a total, mirroring
-// GameService.getScoreFromRound. null for an invalid score.
-function scoreStringTotal(score) {
-  const numbers = String(score).match(/\d+/g)?.map(Number) ?? [];
-  if (numbers.length === 0) return 0; // all misses
-  if (numbers.length % 2 !== 0) return null;
-  let total = 0;
-  for (let i = 0; i < numbers.length / 2; i++) {
-    const number = numbers[2 * i];
-    const multiplier = numbers[2 * i + 1];
-    const isBullseye = number === 25;
-    const valid = isBullseye
-      ? multiplier === 1 || multiplier === 2
-      : number >= 1 && number <= 20 && multiplier >= 1 && multiplier <= 3;
-    if (!valid) return null;
-    total += number * multiplier;
-  }
-  return total;
-}
-
-// Apply one round to the mock display store, mirroring GameService.playGame:
-// points accumulate; hitting the exact target wins; exceeding it is a bust.
-function applyRoundToMock(game, username, score, gameResponse) {
-  game.turn = gameResponse.turn;
-  game.isFinished = gameResponse.isFinished;
-  game.winner = gameResponse.isFinished ? gameResponse.turn : null;
-  const player = game.players.find((p) => p.username === username);
-  if (!player) return;
-  const result = scoreStringTotal(score);
-  if (result === null) return;
-  const target = MOCK_TARGET[game.gametype] ?? 301;
-  if (player.points + result < target) {
-    player.points += result;
-  } else if (player.points + result === target) {
-    player.points = target;
-  }
-}
-
-// Fetch current game state (scoreboard).
-// FINAL: return request(`/api/session/${sessionId}/games/${gameId}`);
-export async function getGameState({ sessionId, gameId }) {
-  const game = ensureMockGame({ sessionId, gameId });
-  return { ...game, players: game.players.map((p) => ({ ...p })) };
-}
-
-// Submit a round of 3 darts — REAL backend call (implemented, not mocked).
+// Submit a round of 3 darts — REAL backend call. The response carries the next
+// turn / finished state; the scoreboard is refreshed via getGameState after.
 export async function playRound({ sessionId, gameId, username, score }) {
   const res = await request(`/api/session/${sessionId}/games`, {
     method: 'PUT',
     body: { username, score, gameId },
   });
-  // Sync the (mocked, display-only) scoreboard with the real result.
-  applyRoundToMock(ensureMockGame({ sessionId, gameId }), username, score, res);
+  gameResponses[res.gameId] = res;
   return res;
 }
 
