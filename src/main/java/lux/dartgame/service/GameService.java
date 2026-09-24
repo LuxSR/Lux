@@ -3,9 +3,11 @@ package lux.dartgame.service;
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.constants.Constants;
 import lux.dartgame.dto.GameResponse;
+import lux.dartgame.dto.GameStatResponse;
 import lux.dartgame.dto.PlayedRoundRequest;
 import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.GameNotFoundException;
 import lux.dartgame.exception.GameStatNotFoundException;
 import lux.dartgame.exception.InvalidScoreException;
 import lux.dartgame.exception.InvalidTurnException;
@@ -27,8 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -127,8 +131,12 @@ public class GameService {
             throw new InvalidScoreException();
         }
 
-        if (results.isEmpty() || results.size() % 2 != 0) {
-            // empty input, or e.g. "20 3 5" (odd count of numbers)
+        if (results.isEmpty()) {
+            return new int[]{0, 0, 0};
+        }
+
+        if (results.size() % 2 != 0) {
+            // e.g. "20 3 5" (odd count of numbers)
             throw new InvalidScoreException();
         }
 
@@ -166,7 +174,8 @@ public class GameService {
 
     @Transactional
     public GameResponse playRound(final PlayedRoundRequest roundResults,
-                                  final String player) {
+                                  final String player,
+                                  final long id) {
 
         User user = userRepository.findByUserName(roundResults.username())
                 .orElseThrow(UsernameNotFoundException::new);
@@ -174,7 +183,7 @@ public class GameService {
         Game game = gameRepository.findById(roundResults.gameId())
                 .orElseThrow(NoAvailableGameException::new);
 
-        Session session = sessionRepository.findById(roundResults.sessionId())
+        Session session = sessionRepository.findById(id)
                 .orElseThrow(SessionNotFoundException::new);
 
         boolean isMember = session.getOwner().getUserName().equals(player)
@@ -273,5 +282,37 @@ public class GameService {
         }
         // Player bust
         return false;
+    }
+
+    @Transactional(readOnly = true)
+    public List<GameStatResponse> getGameStats(final long gameId,
+                                     final Optional<List<String>> players) {
+
+        Game game = gameRepository.findById(gameId).orElseThrow(() ->
+                                            new GameNotFoundException(gameId));
+        List<GameStat> gameStats = game.getGameStats();
+
+        return players.<List<GameStatResponse>>map(strings -> gameStats.stream()
+                .filter(stat -> strings.contains(stat.getUser().getUserName()))
+                .map(stat -> new GameStatResponse(stat.getUser().getUserName(),
+                                                 stat.getPoints(),
+                                                 stat.getTurn(),
+                                                 stat.getBullseyes(),
+                                                 stat.getTriple20s(),
+                                                 stat.getHighestScore(),
+                                                 stat.getHighestCheckout(),
+                                                 stat.getCheckoutAccuracy()))
+                .collect(Collectors.toList()))
+                .orElseGet(() -> gameStats.stream()
+                        .map(stat -> new GameStatResponse(stat.getUser().getUserName(),
+                                                           stat.getPoints(),
+                                                           stat.getTurn(),
+                                                           stat.getBullseyes(),
+                                                           stat.getTriple20s(),
+                                                           stat.getHighestScore(),
+                                                           stat.getHighestCheckout(),
+                                                           stat.getCheckoutAccuracy()))
+                        .collect(Collectors.toList()));
+
     }
 }
