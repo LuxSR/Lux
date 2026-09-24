@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getGameState, getUsername, playRound } from '../api';
+import { getGameState, playRound } from '../api';
 
 // Array of all numbers from 1-20+25
 const DART_VALUES = Array.from({ length: 20 }, (_, i) => i + 1).concat(25);
@@ -54,8 +54,8 @@ export default function GamePage() {
     );
   }
 
-  const username = getUsername(localStorage.getItem('token'));
   const finished = game.isFinished;
+  const activePlayer = game.turn;
   const roundTotal = slots.reduce((sum, slot) => {
     const value = Number(slot.value);
     const multiplier = Number(slot.multiplier);
@@ -88,12 +88,25 @@ export default function GamePage() {
         .filter((slot) => Number(slot.value) > 0)
         .map((slot) => `${slot.value} ${slot.multiplier}`)
         .join(' ');
-      await playRound({ sessionId: id, gameId, username, score });
+      await playRound({
+        sessionId: id,
+        gameId,
+        username: activePlayer,
+        score,
+      });
       const fresh = await getGameState({ sessionId: id, gameId });
       setGame(fresh);
       setSlots(emptySlots());
     } catch (err) {
-      setActionError(`Failed to register round: ${err.message}`);
+      if (err.status === 403) {
+        const fresh = await getGameState({ sessionId: id, gameId });
+        setGame(fresh);
+        setActionError(
+          "It's not that player's turn — play the round for the highlighted player."
+        );
+      } else {
+        setActionError(`Failed to register round: ${err.message}`);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -137,7 +150,11 @@ export default function GamePage() {
         </div>
       ) : (
         <div className="game-round-panel">
-          <h2>Your round — {username}</h2>
+          <div className="game-turn-banner">Next up: {activePlayer}</div>
+          <p className="game-shared-hint">
+            Playing on one device — each player enters their throws when it's
+            their turn.
+          </p>
           <div className="game-dart-slots">
             {slots.map((slot, index) => (
               <div key={index} className="game-dart-slot">
