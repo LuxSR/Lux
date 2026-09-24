@@ -129,20 +129,29 @@ export default function GamePage() {
         <h1>Game #{gameId}</h1>
       </div>
 
-      <h2>Scoreboard</h2>
-      <div className="game-scoreboard">
-        {game.players.map((player) => (
-          <div
-            key={player.username}
-            className={`game-scoreboard-row${
-              player.username === game.turn ? ' game-scoreboard-turn' : ''
-            }`}
-          >
-            <span>{player.username}</span>
-            <span>{player.points}</span>
+      {!finished && (
+        <>
+          <h2>Scoreboard</h2>
+          <div className="game-scoreboard">
+            {game.players.map((player) => (
+              <div
+                key={player.username}
+                className={`game-scoreboard-row${
+                  player.username === game.turn ? ' game-scoreboard-turn' : ''
+                }`}
+              >
+                <span>{player.username}</span>
+                <span>
+                  {player.points}{' '}
+                  <span className="game-scoreboard-turns">
+                    Turns: {player.turns}
+                  </span>
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
       {finished ? (
         <>

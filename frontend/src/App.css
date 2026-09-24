@@ -473,6 +473,11 @@
   color: #fff;
 }
 
+.game-scoreboard-turns {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
 .game-round-panel {
   width: min(560px, 100%);
   display: flex;
