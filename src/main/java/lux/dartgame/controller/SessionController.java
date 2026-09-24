@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+import lux.dartgame.dto.GameRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,6 +56,13 @@ public final class SessionController {
     public void finishSession(final @PathVariable long sessionId,
                               final Principal principal) {
         sessionService.finishSession(sessionId, principal.getName());
+    }
+
+    @PostMapping("{sessionId}")
+    public SessionResponse addGames(final @PathVariable long sessionId,
+                                    final @RequestBody List<GameRequest> games,
+                                    final Principal principal) {
+        return sessionService.addGames(sessionId, games, principal.getName());
     }
 
     @GetMapping("{id}")

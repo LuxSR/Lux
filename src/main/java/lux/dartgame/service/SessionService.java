@@ -138,34 +138,10 @@ public class SessionService {
         List<User> orderedPlayers = new ArrayList<>(session.getPlayers());
         orderedPlayers.sort(Comparator.comparing(User::getUserId));
 
-        if (games.isPresent()) {
-            int n = orderedPlayers.size();
-            Map<String, Integer> gametypeCounts = new HashMap<>();
-
-            for (GameRequest gamemode : games.get()) {
-                Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
-                        .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
-
-                int occurrence = gametypeCounts.getOrDefault(gametype.getGametype(), 0);
-                gametypeCounts.put(gametype.getGametype(), occurrence + 1);
-                int offset = n == 0 ? 0 : occurrence % n;
-
-                Game game = new Game();
-                game.setGametype(gametype);
-                game.setNrOfPlayers(n);
-                session.addGame(game);
-
-                for (int i = 0; i < n; i++) {
-                    GameStat stat = new GameStat();
-                    stat.setUser(orderedPlayers.get((i + offset) % n));
-                    stat.setGame(game);
-                    stat.setPosition(i);
-                    stat.setTurn(0);
-                    game.getGameStats().add(stat);
-                }
-
-            }
-        }
+        games.ifPresent(gameRequests -> buildGames(session,
+                                                                     orderedPlayers,
+                                                                     gameRequests,
+                                                                     new HashMap<>()));
 
         sessionRepository.save(session);
         log.info("Session created successfully for {}", username);
@@ -214,5 +190,74 @@ public class SessionService {
 
         session.setActive(false);
         log.info("Successfully finished session {}", session.getSessionId());
+    }
+
+    @Transactional
+    public SessionResponse addGames(final long sessionId,
+                                    final List<GameRequest> games,
+                                    final String username) {
+        log.info("{} wants to add games to session {}", username, sessionId);
+
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(SessionNotFoundException::new);
+
+        if (!session.getOwner().getUserName().equals(username)) {
+            throw new AccessDeniedException();
+        }
+
+        if (!session.isActive()) {
+            throw new AccessDeniedException();
+        }
+
+        List<User> orderedPlayers = new ArrayList<>(session.getPlayers());
+        orderedPlayers.sort(Comparator.comparing(User::getUserId));
+
+        Map<String, Integer> gametypeCounts = session.getGames().stream()
+                .collect(Collectors.toMap(
+                        g -> g.getGametype().getGametype(),
+                        g -> 1,
+                        Integer::sum));
+
+        buildGames(session, orderedPlayers, games, gametypeCounts);
+        log.info("Games added to session {} by {}", sessionId, username);
+
+        return new SessionResponse(session.getSessionId(),
+                session.getPlayedAt().toString(),
+                session.getGames().stream()
+                        .map(Game::getGametype)
+                        .map(g -> new GametypeResponse(
+                                g.getGametype()))
+                        .toList(),
+                session.isActive());
+    }
+
+    private void buildGames(final Session session,
+                                final List<User> orderedPlayers,
+                                final List<GameRequest> gamemodes,
+                                final Map<String, Integer> gametypeCounts) {
+        int n = orderedPlayers.size();
+
+        for (GameRequest gamemode : gamemodes) {
+            Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
+                    .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
+
+            int occurrence = gametypeCounts.getOrDefault(gametype.getGametype(), 0);
+            gametypeCounts.put(gametype.getGametype(), occurrence + 1);
+            int offset = n == 0 ? 0 : occurrence % n;
+
+            Game game = new Game();
+            game.setGametype(gametype);
+            game.setNrOfPlayers(n);
+            session.addGame(game);
+
+            for (int i = 0; i < n; i++) {
+                GameStat stat = new GameStat();
+                stat.setUser(orderedPlayers.get((i + offset) % n));
+                stat.setGame(game);
+                stat.setPosition(i);
+                stat.setTurn(0);
+                game.getGameStats().add(stat);
+            }
+        }
     }
 }

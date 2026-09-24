@@ -1,6 +1,7 @@
 package lux.dartgame.service;
 
 import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
 import lux.dartgame.dto.SessionResponse;
 import lux.dartgame.dto.UserRequest;
 import lux.dartgame.exception.AccessDeniedException;
@@ -8,6 +9,8 @@ import lux.dartgame.exception.GameModeNotFoundException;
 import lux.dartgame.exception.NoSessionsForThisUserException;
 import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameNotFoundException;
+import lux.dartgame.model.Game;
+import lux.dartgame.model.GameStat;
 import lux.dartgame.model.Gametype;
 import lux.dartgame.model.Session;
 import lux.dartgame.model.User;
@@ -56,6 +59,21 @@ class SessionServiceTest {
         User user = new User();
         user.setUserName(username);
         return user;
+    }
+
+    private User user(final String username, final long userId) {
+        User user = user(username);
+        user.setUserId(userId);
+        return user;
+    }
+
+    private Game existingGame(final Session session, final String gametypeName) {
+        Gametype gametype = new Gametype();
+        gametype.setGametype(gametypeName);
+        Game game = new Game();
+        game.setGametype(gametype);
+        session.addGame(game);
+        return game;
     }
 
     private Session session(final long id, final boolean active, final User owner) {
@@ -280,5 +298,174 @@ class SessionServiceTest {
                 .isInstanceOf(SessionNotFoundException.class);
 
         verify(sessionRepository, never()).delete(any());
+    }
+
+    @Test
+    void addGames_ownerAddsGame_attachesGameAndStats() {
+        User owner = user(OWNER_USERNAME, 1L);
+        User player = user(PLAYER_USERNAME, 2L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        session.addPlayers(player);
+        Gametype gametype = new Gametype();
+        gametype.setGametype("501");
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("501")).thenReturn(Optional.of(gametype));
+
+        SessionResponse result = sessionService.addGames(7L,
+                List.of(new GameRequest("501")), OWNER_USERNAME);
+
+        assertThat(session.getGames()).hasSize(1);
+        Game game = session.getGames().get(0);
+        assertThat(game.getGametype()).isEqualTo(gametype);
+        assertThat(game.getNrOfPlayers()).isEqualTo(2);
+        assertThat(game.getSession()).isEqualTo(session);
+        assertThat(game.getGameStats()).hasSize(2);
+        assertThat(game.getGameStats()).allMatch(stat -> stat.getTurn() == 0);
+        assertThat(result).isEqualTo(new SessionResponse(7L, PLAYED_AT.toString(),
+                List.of(new GametypeResponse("501")), true));
+        verify(sessionRepository).findById(7L);
+    }
+
+    @Test
+    void addGames_singlePlayer_oneStatAtPositionZero() {
+        User owner = user(OWNER_USERNAME, 1L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        Gametype gametype = new Gametype();
+        gametype.setGametype("501");
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("501")).thenReturn(Optional.of(gametype));
+
+        sessionService.addGames(7L, List.of(new GameRequest("501")), OWNER_USERNAME);
+
+        Game game = session.getGames().get(0);
+        assertThat(game.getGameStats()).hasSize(1);
+        GameStat stat = game.getGameStats().get(0);
+        assertThat(stat.getPosition()).isZero();
+        assertThat(stat.getTurn()).isZero();
+        assertThat(stat.getUser()).isEqualTo(owner);
+    }
+
+    @Test
+    void addGames_rotatesUsingExistingGamesOfSameGametype() {
+        User owner = user(OWNER_USERNAME, 1L);
+        User player = user(PLAYER_USERNAME, 2L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        session.addPlayers(player);
+        existingGame(session, "501");
+        Gametype gametype = new Gametype();
+        gametype.setGametype("501");
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("501")).thenReturn(Optional.of(gametype));
+
+        sessionService.addGames(7L, List.of(new GameRequest("501")), OWNER_USERNAME);
+
+        Game newGame = session.getGames().get(1);
+        List<GameStat> stats = newGame.getGameStats();
+        assertThat(stats).hasSize(2);
+        assertThat(stats.get(0).getPosition()).isZero();
+        assertThat(stats.get(0).getUser()).isEqualTo(player);
+        assertThat(stats.get(1).getPosition()).isEqualTo(1);
+        assertThat(stats.get(1).getUser()).isEqualTo(owner);
+    }
+
+    @Test
+    void addGames_differentGametype_doesNotShareOccurrence() {
+        User owner = user(OWNER_USERNAME, 1L);
+        User player = user(PLAYER_USERNAME, 2L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        session.addPlayers(player);
+        existingGame(session, "501");
+        Gametype gametype = new Gametype();
+        gametype.setGametype("301");
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("301")).thenReturn(Optional.of(gametype));
+
+        sessionService.addGames(7L, List.of(new GameRequest("301")), OWNER_USERNAME);
+
+        Game newGame = session.getGames().get(1);
+        List<GameStat> stats = newGame.getGameStats();
+        assertThat(stats.get(0).getPosition()).isZero();
+        assertThat(stats.get(0).getUser()).isEqualTo(owner);
+    }
+
+    @Test
+    void addGames_multipleGamesInOneCall_incrementsOffsetSequentially() {
+        User owner = user(OWNER_USERNAME, 1L);
+        User player = user(PLAYER_USERNAME, 2L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        session.addPlayers(player);
+        existingGame(session, "301");
+        Gametype gametype = new Gametype();
+        gametype.setGametype("301");
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("301")).thenReturn(Optional.of(gametype));
+
+        sessionService.addGames(7L,
+                List.of(new GameRequest("301"), new GameRequest("301")), OWNER_USERNAME);
+
+        Game first = session.getGames().get(1);
+        Game second = session.getGames().get(2);
+        assertThat(first.getGameStats().get(0).getUser()).isEqualTo(player);
+        assertThat(second.getGameStats().get(0).getUser()).isEqualTo(owner);
+    }
+
+    @Test
+    void addGames_nonOwner_throwsAccessDenied() {
+        User owner = user(OWNER_USERNAME, 1L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+
+        assertThatThrownBy(() -> sessionService.addGames(7L,
+                List.of(new GameRequest("501")), PLAYER_USERNAME))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void addGames_inactiveSession_throwsAccessDenied() {
+        User owner = user(OWNER_USERNAME, 1L);
+        Session session = session(7L, false, owner);
+        session.addPlayers(owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+
+        assertThatThrownBy(() -> sessionService.addGames(7L,
+                List.of(new GameRequest("501")), OWNER_USERNAME))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void addGames_unknownSession_throwsSessionNotFoundException() {
+        when(sessionRepository.findById(7L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sessionService.addGames(7L,
+                List.of(new GameRequest("501")), OWNER_USERNAME))
+                .isInstanceOf(SessionNotFoundException.class);
+
+        verify(sessionRepository, never()).save(any());
+    }
+
+    @Test
+    void addGames_unknownGametype_throwsGameModeNotFoundException() {
+        User owner = user(OWNER_USERNAME, 1L);
+        Session session = session(7L, true, owner);
+        session.addPlayers(owner);
+        when(sessionRepository.findById(7L)).thenReturn(Optional.of(session));
+        when(gametypeRepository.findByGametype("999")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> sessionService.addGames(7L,
+                List.of(new GameRequest("999")), OWNER_USERNAME))
+                .isInstanceOf(GameModeNotFoundException.class);
+
+        assertThat(session.getGames()).isEmpty();
+        verify(sessionRepository, never()).save(any());
     }
 }
