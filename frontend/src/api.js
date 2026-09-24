@@ -80,29 +80,57 @@ export async function createSession({ gamemodes, players = [] }) {
 
 export const MAX_TOTAL_PLAYERS = 10;
 
-// Fetch current game state: players + points from the real stats endpoint,
-// turn/isFinished/gametype from the most recent real GameResponse.
+export async function getFinishedGames({ sessionId }) {
+  return request(`/api/session/${sessionId}/finished-games`);
+}
+
+function mapStats(stats) {
+  return stats.map((s) => ({
+    username: s.userName,
+    points: s.points,
+    turns: s.turns,
+    bullseyes: s.bullseyes,
+    triple20s: s.triple20s,
+    highestScore: s.highestScore,
+    highestCheckout: s.highestCheckout,
+    checkoutAccuracy: s.checkoutAccuracy,
+  }));
+}
+
+// Fetch current game state: per-player stats from the real stats endpoint;
+// turn/isFinished/gametype from the most recent real GameResponse while
+// playing, or from the session's finished-games list after a reload.
 export async function getGameState({ sessionId, gameId }) {
   const id = Number(gameId);
   const stats = await request(`/api/session/${sessionId}/games/${id}/stats`);
   const meta = gameResponses[id] ?? {};
 
-  let turn = meta.turn;
-  if (!turn) {
-    // Reload mid-game: no GameResponse cached — best-effort from stats
-    // (the player with the fewest turns is up next).
-    const minTurns = Math.min(...stats.map((s) => s.turns));
-    turn = stats.find((s) => s.turns === minTurns)?.userName;
+  if (meta.turn) {
+    // Live path (played in this page session): GameResponse cache is warm.
+    return {
+      gameId: id,
+      gametype: meta.gametype,
+      isFinished: Boolean(meta.isFinished),
+      winner: meta.isFinished ? meta.turn : null,
+      turn: meta.turn,
+      players: mapStats(stats),
+    };
   }
 
-  const isFinished = Boolean(meta.isFinished);
+  // Reload path: no cached GameResponse — derive finished/winner from the
+  // session's finished-games list; turn = winner (finished) or the player
+  // with the fewest turns (in-progress, best-effort).
+  const finished = await getFinishedGames({ sessionId });
+  const finishedGame = finished.find((f) => Number(f.gameId) === id);
+  const minTurns = Math.min(...stats.map((s) => s.turns));
+  const turn = stats.find((s) => s.turns === minTurns)?.userName;
   return {
     gameId: id,
-    gametype: meta.gametype,
-    isFinished,
-    winner: isFinished ? meta.turn : null,
-    turn,
-    players: stats.map((s) => ({ username: s.userName, points: s.points })),
+    gametype: finishedGame?.gametype ?? meta.gametype,
+    isFinished: Boolean(finishedGame),
+    winner: finishedGame?.winner ?? null,
+    turn: finishedGame?.winner ?? turn,
+    players: mapStats(stats),
   };
 }
 

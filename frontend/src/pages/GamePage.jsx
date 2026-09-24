@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getGameState, playRound } from '../api';
+import GameStatsTable from '../components/GameStatsTable';
 
 // Array of all numbers from 1-20+25
 const DART_VALUES = Array.from({ length: 20 }, (_, i) => i + 1).concat(25);
@@ -144,10 +145,16 @@ export default function GamePage() {
       </div>
 
       {finished ? (
-        <div className="game-winner">
-          <h2>Winner: {game.winner || game.turn}</h2>
-          <p>Game finished</p>
-        </div>
+        <>
+          <div className="game-winner">
+            <h2>Winner: {game.winner || game.turn}</h2>
+            <p>Game finished</p>
+          </div>
+          <div className="game-stats-section">
+            <h2>Game stats</h2>
+            <GameStatsTable players={game.players} winner={game.winner} />
+          </div>
+        </>
       ) : (
         <div className="game-round-panel">
           <div className="game-turn-banner">Next up: {activePlayer}</div>
