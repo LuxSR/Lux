@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.GameNotFoundException;
 import lux.dartgame.exception.GameStatNotFoundException;
 import lux.dartgame.exception.InvalidScoreException;
 import lux.dartgame.exception.InvalidTurnException;
@@ -103,6 +104,13 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(GameStatNotFoundException.class)
     public String handleGameStatNotFound(final GameStatNotFoundException e) {
         log.warn("Gametype not found: {}", e.getMessage());
+        return e.getMessage();
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(GameNotFoundException.class)
+    public String handleGameNotFound(final GameNotFoundException e) {
+        log.warn("Game not found: {}", e.getMessage());
         return e.getMessage();
     }
 

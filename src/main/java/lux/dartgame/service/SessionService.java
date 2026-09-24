@@ -1,27 +1,5 @@
 package lux.dartgame.service;
 
-import lombok.extern.slf4j.Slf4j;
-import lux.dartgame.dto.GameRequest;
-import lux.dartgame.dto.GametypeResponse;
-import lux.dartgame.dto.SessionResponse;
-import lux.dartgame.dto.UserRequest;
-import lux.dartgame.exception.AccessDeniedException;
-import lux.dartgame.exception.GameModeNotFoundException;
-import lux.dartgame.exception.NoSessionsForThisUserException;
-import lux.dartgame.exception.SessionNotFoundException;
-import lux.dartgame.model.Game;
-import lux.dartgame.model.GameStat;
-import lux.dartgame.model.Gametype;
-import lux.dartgame.model.Session;
-import lux.dartgame.model.User;
-import lux.dartgame.repository.SessionRepository;
-import lux.dartgame.repository.UserRepository;
-import lux.dartgame.repository.GametypeRepository;
-import lux.dartgame.exception.UsernameNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,6 +10,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.math.NumberUtils.toLong;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.dto.FinishedGameResponse;
+import lux.dartgame.dto.GameRequest;
+import lux.dartgame.dto.GametypeResponse;
+import lux.dartgame.dto.SessionResponse;
+import lux.dartgame.dto.UserRequest;
+import lux.dartgame.exception.AccessDeniedException;
+import lux.dartgame.exception.GameModeNotFoundException;
+import lux.dartgame.exception.NoSessionsForThisUserException;
+import lux.dartgame.exception.SessionNotFoundException;
+import lux.dartgame.exception.UsernameNotFoundException;
+import lux.dartgame.model.Game;
+import lux.dartgame.model.GameStat;
+import lux.dartgame.model.Gametype;
+import lux.dartgame.model.Session;
+import lux.dartgame.model.User;
+import lux.dartgame.repository.GametypeRepository;
+import lux.dartgame.repository.SessionRepository;
+import lux.dartgame.repository.UserRepository;
 
 @Slf4j
 @Service
@@ -65,6 +66,20 @@ public class SessionService {
                                                     g.getGametype()))
                                             .toList(),
                                     session.isActive());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FinishedGameResponse> getAllFinishedGames(final long sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                                           .orElseThrow(SessionNotFoundException::new);
+       return session.getGames()
+                     .stream()
+                     .filter(g -> g.getWinner() != null)
+                     .map(g -> new FinishedGameResponse(
+                                           g.getGametype().getGametype(),
+                                           g.getGameId(),
+                                           g.getWinner().getUserName()))
+                     .toList();
     }
 
     @Transactional(readOnly = true)
@@ -123,34 +138,10 @@ public class SessionService {
         List<User> orderedPlayers = new ArrayList<>(session.getPlayers());
         orderedPlayers.sort(Comparator.comparing(User::getUserId));
 
-        if (games.isPresent()) {
-            int n = orderedPlayers.size();
-            Map<String, Integer> gametypeCounts = new HashMap<>();
-
-            for (GameRequest gamemode : games.get()) {
-                Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
-                        .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
-
-                int occurrence = gametypeCounts.getOrDefault(gametype.getGametype(), 0);
-                gametypeCounts.put(gametype.getGametype(), occurrence + 1);
-                int offset = n == 0 ? 0 : occurrence % n;
-
-                Game game = new Game();
-                game.setGametype(gametype);
-                game.setNrOfPlayers(n);
-                session.addGame(game);
-
-                for (int i = 0; i < n; i++) {
-                    GameStat stat = new GameStat();
-                    stat.setUser(orderedPlayers.get((i + offset) % n));
-                    stat.setGame(game);
-                    stat.setPosition(i);
-                    stat.setTurn(0);
-                    game.getGameStats().add(stat);
-                }
-
-            }
-        }
+        games.ifPresent(gameRequests -> buildGames(session,
+                                                                     orderedPlayers,
+                                                                     gameRequests,
+                                                                     new HashMap<>()));
 
         sessionRepository.save(session);
         log.info("Session created successfully for {}", username);
@@ -185,5 +176,88 @@ public class SessionService {
 
         sessionRepository.delete(session);
         log.info("Successfully deleted session {}", sessionId);
+    }
+
+    @Transactional
+    public void finishSession(final long sessionId,
+                              final String username) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(SessionNotFoundException::new);
+
+        if (!session.getOwner().getUserName().equals(username)) {
+            throw new AccessDeniedException();
+        }
+
+        session.setActive(false);
+        log.info("Successfully finished session {}", session.getSessionId());
+    }
+
+    @Transactional
+    public SessionResponse addGames(final long sessionId,
+                                    final List<GameRequest> games,
+                                    final String username) {
+        log.info("{} wants to add games to session {}", username, sessionId);
+
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(SessionNotFoundException::new);
+
+        if (!session.getOwner().getUserName().equals(username)) {
+            throw new AccessDeniedException();
+        }
+
+        if (!session.isActive()) {
+            throw new AccessDeniedException();
+        }
+
+        List<User> orderedPlayers = new ArrayList<>(session.getPlayers());
+        orderedPlayers.sort(Comparator.comparing(User::getUserId));
+
+        Map<String, Integer> gametypeCounts = session.getGames().stream()
+                .collect(Collectors.toMap(
+                        g -> g.getGametype().getGametype(),
+                        g -> 1,
+                        Integer::sum));
+
+        buildGames(session, orderedPlayers, games, gametypeCounts);
+        log.info("Games added to session {} by {}", sessionId, username);
+
+        return new SessionResponse(session.getSessionId(),
+                session.getPlayedAt().toString(),
+                session.getGames().stream()
+                        .map(Game::getGametype)
+                        .map(g -> new GametypeResponse(
+                                g.getGametype()))
+                        .toList(),
+                session.isActive());
+    }
+
+    private void buildGames(final Session session,
+                                final List<User> orderedPlayers,
+                                final List<GameRequest> gamemodes,
+                                final Map<String, Integer> gametypeCounts) {
+        int n = orderedPlayers.size();
+
+        for (GameRequest gamemode : gamemodes) {
+            Gametype gametype = gametypeRepository.findByGametype(gamemode.gameType())
+                    .orElseThrow(() -> new GameModeNotFoundException(gamemode.gameType()));
+
+            int occurrence = gametypeCounts.getOrDefault(gametype.getGametype(), 0);
+            gametypeCounts.put(gametype.getGametype(), occurrence + 1);
+            int offset = n == 0 ? 0 : occurrence % n;
+
+            Game game = new Game();
+            game.setGametype(gametype);
+            game.setNrOfPlayers(n);
+            session.addGame(game);
+
+            for (int i = 0; i < n; i++) {
+                GameStat stat = new GameStat();
+                stat.setUser(orderedPlayers.get((i + offset) % n));
+                stat.setGame(game);
+                stat.setPosition(i);
+                stat.setTurn(0);
+                game.getGameStats().add(stat);
+            }
+        }
     }
 }

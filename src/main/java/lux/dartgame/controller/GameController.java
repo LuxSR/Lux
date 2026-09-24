@@ -1,8 +1,9 @@
 package lux.dartgame.controller;
 
-import lux.dartgame.dto.GameResponse;
-import lux.dartgame.dto.PlayedRoundRequest;
-import lux.dartgame.service.GameService;
+import java.security.Principal;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -11,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-import java.util.List;
+import lux.dartgame.dto.GameResponse;
+import lux.dartgame.dto.GameStatResponse;
+import lux.dartgame.dto.PlayedRoundRequest;
+import lux.dartgame.service.GameService;
 
 @RestController
 @RequestMapping("api/session/{id}/games")
@@ -35,5 +38,12 @@ public class GameController {
                                   final @PathVariable long id,
                                   final Principal principal) {
         return gameService.playRound(roundResults, principal.getName(), id);
+    }
+
+    @GetMapping("{gameid}/stats")
+    public List<GameStatResponse> getGame(final @PathVariable long gameid,
+                                          final @RequestBody(required = false)
+                                                List<String> players) {
+        return gameService.getGameStats(gameid, Optional.ofNullable(players));
     }
 }
