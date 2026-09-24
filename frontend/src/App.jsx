@@ -1,9 +1,10 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './AuthContext.jsx';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegistrationPage';
 import HomePage from './pages/HomePage';
+import NotFoundPage from './pages/NotFoundPage';
 import SessionsPage from './pages/SessionsPage';
 import SessionDetailPage from './pages/SessionDetailPage';
 import GamePage from './pages/GamePage';
@@ -30,8 +31,8 @@ export default function App() {
                 element={<GamePage />}
               />
             </Route>
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
