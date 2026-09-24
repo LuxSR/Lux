@@ -16,6 +16,7 @@ import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameNotFoundException;
 import lux.dartgame.model.GameStat;
 import lux.dartgame.model.GameStatsId;
+import lux.dartgame.model.PlayerStat;
 import lux.dartgame.model.Session;
 import lux.dartgame.model.User;
 import lux.dartgame.repository.GameRepository;
@@ -209,6 +210,7 @@ public class GameService {
 
         if (gameLogic(gametype, roundResults.score(), stat)) {
             game.setWinner(user);
+            updatePlayerStats(game);
             return new GameResponse(gametype,
                                     game.getWinner().getUserName(),
                                     game.getGameId(),
@@ -314,5 +316,41 @@ public class GameService {
                                                            stat.getCheckoutAccuracy()))
                         .collect(Collectors.toList()));
 
+    }
+
+    // Called when a game finishes. Aggregates every participant's performance
+    // in this game into their cumulative PlayerStat (created on first game).
+    private void updatePlayerStats(final Game game) {
+        User winner = game.getWinner();
+
+        for (GameStat stat : game.getGameStats()) {
+            User player = stat.getUser();
+            PlayerStat playerStats = player.getStats();
+            if (playerStats == null) {
+                playerStats = new PlayerStat();
+                playerStats.setPlayer(player);
+                player.setStats(playerStats);   // cascade ALL on User.stats persists it
+            }
+
+            int played = playerStats.getPlayedGames() + 1;
+            playerStats.setPlayedGames(played);
+
+            if (winner != null && winner.getUserId() == player.getUserId()) {
+                playerStats.setWonGames(playerStats.getWonGames() + 1);
+            }
+
+            playerStats.setTriple20s(playerStats.getTriple20s() + stat.getTriple20s());
+            playerStats.setBullseyes(playerStats.getBullseyes() + stat.getBullseyes());
+            playerStats.setHighestScore(Math.max(playerStats.getHighestScore(),
+                    stat.getHighestScore()));
+            playerStats.setHighestCheckout(Math.max(playerStats.getHighestCheckout(),
+                    stat.getHighestCheckout()));
+
+            // Running average over games played
+            playerStats.setAvgPoints((playerStats.getAvgPoints() * (played - 1)
+                    + stat.getPoints()) / played);
+            playerStats.setAvgCheckoutAccuracy((playerStats.getAvgCheckoutAccuracy() * (played - 1)
+                    + stat.getCheckoutAccuracy()) / played);
+        }
     }
 }

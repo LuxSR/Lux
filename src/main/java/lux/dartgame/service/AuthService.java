@@ -9,6 +9,7 @@ import lux.dartgame.dto.TokenResponse;
 import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.RoleNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
+import lux.dartgame.model.PlayerStat;
 import lux.dartgame.model.Role;
 import lux.dartgame.model.User;
 import lux.dartgame.repository.RoleRepository;
@@ -76,6 +77,10 @@ public final class AuthService {
         Role userRole = roleRepository.findByRole("USER")
                 .orElseThrow(RoleNotFoundException::new);
         user.setRole(userRole);
+        PlayerStat playerStats = new PlayerStat();
+        playerStats.setPlayer(user);
+        user.setStats(playerStats);
+
         userRepository.save(user);
         log.info("Registration successful for user: {}", request.username());
 
