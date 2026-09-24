@@ -201,4 +201,18 @@ public class SessionService {
         sessionRepository.delete(session);
         log.info("Successfully deleted session {}", sessionId);
     }
+
+    @Transactional
+    public void finishSession(final long sessionId,
+                              final String username) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(SessionNotFoundException::new);
+
+        if (!session.getOwner().getUserName().equals(username)) {
+            throw new AccessDeniedException();
+        }
+
+        session.setActive(false);
+        log.info("Successfully finished session {}", session.getSessionId());
+    }
 }
