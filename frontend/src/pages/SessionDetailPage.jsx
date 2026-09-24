@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getSessionById, startGame } from '../api';
+import { getFinishedGames, getSessionById, startGame } from '../api';
 import GameTypeCard from '../components/GameTypeCard';
+import FinishedGamesList from '../components/FinishedGamesList';
 
 // &larr is an HTML entity for a left-pointing arrow (←)
 const BackToSessions = (
@@ -17,6 +18,7 @@ export default function SessionDetailPage() {
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
   const [finished, setFinished] = useState({});
+  const [finishedGames, setFinishedGames] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,6 +28,20 @@ export default function SessionDetailPage() {
       })
       .catch((err) => {
         if (!cancelled) setError(err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getFinishedGames({ sessionId: id })
+      .then((data) => {
+        if (!cancelled) setFinishedGames(data);
+      })
+      .catch(() => {
+        // Finished-games list is must not block the page.
       });
     return () => {
       cancelled = true;
@@ -113,6 +129,8 @@ export default function SessionDetailPage() {
           ))}
         </div>
       )}
+      <h2>Finished games</h2>
+      <FinishedGamesList games={finishedGames} sessionId={id} />
     </div>
   );
 }
