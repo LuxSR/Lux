@@ -1,0 +1,81 @@
+services:
+  # ---- Shared: always starts ----
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---- Production-style: docker compose --profile prod up ----
+  backend:
+    build: .
+    image: super-darter-backend
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["prod"]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    profiles: ["prod"]
+
+  # ---- Dev: docker compose --profile dev up ----
+  dev-backend:
+    build:
+      context: .
+      target: build          # the Maven stage of your Dockerfile
+    working_dir: /app
+    command: ["mvn", "spring-boot:run"]
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./:/app
+      - m2-cache:/root/.m2
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["dev"]
+
+  dev-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_PROXY_TARGET: http://dev-backend:8080
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    profiles: ["dev"]
+
+volumes:
+  db-data:
+  m2-cache:
