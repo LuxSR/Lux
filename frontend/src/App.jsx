@@ -1,10 +1,13 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './AuthContext.jsx';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegistrationPage';
 import HomePage from './pages/HomePage';
+import NotFoundPage from './pages/NotFoundPage';
 import SessionsPage from './pages/SessionsPage';
+import SessionDetailPage from './pages/SessionDetailPage';
+import GamePage from './pages/GamePage';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -22,9 +25,14 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               {/* Pages with topbar+sidemenu, log in required*/}
               <Route path="/sessions" element={<SessionsPage />} />
+              <Route path="/session/:id" element={<SessionDetailPage />} />
+              <Route
+                path="/session/:id/game/:gameId"
+                element={<GamePage />}
+              />
             </Route>
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
