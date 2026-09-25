@@ -1,5 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 let unauthorizedHandler = null;
 
 export function setUnauthorizedHandler(fn) {
@@ -10,7 +12,7 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
   const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json' };
   if (auth && token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
