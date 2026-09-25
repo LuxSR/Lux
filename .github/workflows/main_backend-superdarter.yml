@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - backend-superdarter
+name: Build and deploy WAR app to Azure Web App - backend-superdarter
 
 on:
   push:
@@ -21,8 +21,8 @@ jobs:
       - name: Set up Java version
         uses: actions/setup-java@v4
         with:
-          java-version: '25'
-          distribution: 'temurin'
+          java-version: 'java25'
+          distribution: 'microsoft'
 
       - name: Build with Maven
         run: mvn clean install
@@ -31,12 +31,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/target/*.war'
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
-      
+    needs: build 
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -49,5 +49,5 @@ jobs:
         with:
           app-name: 'backend-superdarter'
           slot-name: 'Production'
-          package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_33252AADB3914D7FB93C70ABC7BE41FA }}
+          package: '*.war'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_26884DECE3B54A248D485F1E98071EA2 }}
