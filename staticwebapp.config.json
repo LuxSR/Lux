@@ -1,13 +1,1 @@
-{
-  "routes": [
-    {
-      "route": "backend-superdarter-d4d6d7cbefhccpd2.germanywestcentral-01.azurewebsites.net",
-      "methods": [
-        "get",
-        "post",
-        "put",
-        "delete"
-      ]
-    }
-  ]
-}
+{}
