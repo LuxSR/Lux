@@ -27,7 +27,12 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     err.status = res.status;
     throw err;
   }
-  return res.json();
+  
+  // Void endpoints (PUT /api/session/{id}, DELETE /api/session) return an empty
+  // 200 body, so parse defensively: non-JSON bodies still reject, which keeps
+  // every existing endpoint behaving as before.
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export function register({ username, password, email }) {
@@ -56,6 +61,16 @@ export function getAllGamemodes() {
   return request('/api/gamemode');
 }
 
+// Fetch cumulative stats for the signed-in player identified by the JWT subject.
+export function getPlayerStats() {
+  const token = localStorage.getItem('token');
+  const username = getUsername(token);
+  return request('/api/playerStats', {
+    method: 'POST',
+    body: [{ username }],
+  });
+}
+
 export function getSessionById(id) {
   return request(`/api/session/${id}`);
 }
@@ -78,6 +93,20 @@ export async function createSession({ gamemodes, players = [] }) {
       players: players.map((username) => ({ username })),
     },
   });
+}
+
+// Requires being owner and session not finished Body is an array
+// of GameRequests. Returns the FULL updated SessionResponse
+export async function addGamesToSession({ sessionId, gamemodes }) {
+  return request(`/api/session/${sessionId}`, {
+    method: 'POST',
+    body: gamemodes.map((gameType) => ({ gameType })),
+  });
+}
+
+// Finish a session. Owner-only (403), 404 if unknown, 200 with an EMPTY body.
+export function finishSession({ sessionId }) {
+  return request(`/api/session/${sessionId}`, { method: 'PUT' });
 }
 
 export const MAX_TOTAL_PLAYERS = 10;

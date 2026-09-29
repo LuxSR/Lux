@@ -1,6 +1,12 @@
 import { useState } from 'react';
 
-export default function GameTypeCard({ gamemode, count, onStart, finishedMessage }) {
+export default function GameTypeCard({
+  gamemode,
+  count,
+  onStart,
+  finishedMessage,
+  playable = true,
+}) {
   const [loading, setLoading] = useState(false);
 
   const handleStart = async () => {
@@ -21,14 +27,16 @@ export default function GameTypeCard({ gamemode, count, onStart, finishedMessage
         {finishedMessage ? (
           <span className="game-type-card-finished">{finishedMessage}</span>
         ) : (
-          <button
-            type="button"
-            className="btn btn-primary game-type-card-start"
-            onClick={handleStart}
-            disabled={loading}
-          >
-            {loading ? 'Starting…' : 'Start'}
-          </button>
+          playable && (
+            <button
+              type="button"
+              className="btn btn-primary game-type-card-start"
+              onClick={handleStart}
+              disabled={loading}
+            >
+              {loading ? 'Starting…' : 'Start'}
+            </button>
+          )
         )}
       </div>
     </div>
