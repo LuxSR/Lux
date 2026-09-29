@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../useAuth';
 import { login } from '../api';
 
@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
@@ -19,7 +20,7 @@ export default function LoginPage() {
     try {
       const res = await login(formData);
       authLogin(res.token);
-      navigate('/', { replace: true });
+      navigate(location.state?.from || '/', { replace: true });
     } catch (err) {
       setError(err.message);
     }
