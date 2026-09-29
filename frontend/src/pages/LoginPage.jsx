@@ -6,6 +6,7 @@ import { login } from '../api';
 export default function LoginPage() {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,6 +17,8 @@ export default function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     setError('');
     try {
       const res = await login(formData);
@@ -23,6 +26,8 @@ export default function LoginPage() {
       navigate(location.state?.from || '/', { replace: true });
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -50,8 +55,8 @@ export default function LoginPage() {
               onChange={handleChange}
             />
           </div>{' '}
-          <button className="btn btn-primary" type="submit">
-            Login
+          <button className="btn btn-primary" type="submit" disabled={submitting}>
+            {submitting ? 'Logging in...' : 'Login'}
           </button>
         </form>
         {error && <p className="error-message">{error}</p>}
