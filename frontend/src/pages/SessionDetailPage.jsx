@@ -4,6 +4,7 @@ import { getFinishedGames, getSessionById, getSessions, startGame } from '../api
 import GameTypeCard from '../components/GameTypeCard';
 import FinishedGamesList from '../components/FinishedGamesList';
 import AddGamesModal from '../components/AddGamesModal';
+import ConfirmFinishModal from '../components/ConfirmFinishModal';
 
 // &larr is an HTML entity for a left-pointing arrow (←)
 const BackToSessions = (
@@ -21,6 +22,7 @@ export default function SessionDetailPage() {
   const [finished, setFinished] = useState({});
   const [finishedGames, setFinishedGames] = useState([]);
   const [addingGames, setAddingGames] = useState(false);
+  const [finishingSession, setFinishingSession] = useState(false);
   // null until the ownership lookup resolves.
   const [isOwner, setIsOwner] = useState(null);
 
@@ -110,6 +112,12 @@ export default function SessionDetailPage() {
     setFinished({});
   };
 
+  // The PUT returns no body, so the new isActive value has to be refetched.
+  const handleFinished = async () => {
+    const fresh = await getSessionById(id);
+    setSession(fresh);
+  };
+
   const handleStart = async (gamemode) => {
     try {
       const res = await startGame({ sessionId: id, gameType: gamemode });
@@ -141,6 +149,21 @@ export default function SessionDetailPage() {
         )}
       </div>
       {actionError && <p className="error-message">{actionError}</p>}
+      <div className="session-detail-actions">
+        {isOwner && session.isActive ? (
+          <button
+            className="btn btn-danger"
+            type="button"
+            onClick={() => setFinishingSession(true)}
+          >
+            Finish session
+          </button>
+        ) : (
+          !session.isActive && (
+            <span className="session-finished-badge">Finished</span>
+          )
+        )}
+      </div>
       <div className="session-detail-games-header">
         <h2>Games in this session</h2>
         {isOwner && session.isActive && (
@@ -166,6 +189,7 @@ export default function SessionDetailPage() {
               count={count}
               onStart={() => handleStart(gamemode)}
               finishedMessage={finished[gamemode]}
+              playable={session.isActive}
             />
           ))}
         </div>
@@ -177,6 +201,13 @@ export default function SessionDetailPage() {
           sessionId={id}
           onClose={() => setAddingGames(false)}
           onAdded={handleGamesAdded}
+        />
+      )}
+      {finishingSession && (
+        <ConfirmFinishModal
+          sessionId={id}
+          onClose={() => setFinishingSession(false)}
+          onFinished={handleFinished}
         />
       )}
     </div>

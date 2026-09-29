@@ -118,6 +118,18 @@
   background: var(--color-primary-hover);
 }
 
+/* Declared after .btn:hover (equal specificity) so source order keeps the
+   hover red rather than turning primary-blue. */
+.btn-danger {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: var(--color-error);
+  opacity: 0.85;
+}
+
 .topbar-login {
   background: var(--color-primary);
   color: #fff;
@@ -428,6 +440,20 @@
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-5);
+}
+
+.session-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+.session-finished-badge {
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  font-size: 0.8rem;
 }
 
 .session-detail-games-header {
