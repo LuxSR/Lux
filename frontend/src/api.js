@@ -61,6 +61,16 @@ export function getAllGamemodes() {
   return request('/api/gamemode');
 }
 
+// Fetch cumulative stats for the signed-in player identified by the JWT subject.
+export function getPlayerStats() {
+  const token = localStorage.getItem('token');
+  const username = getUsername(token);
+  return request('/api/playerStats', {
+    method: 'POST',
+    body: [{ username }],
+  });
+}
+
 export function getSessionById(id) {
   return request(`/api/session/${id}`);
 }
