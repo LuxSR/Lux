@@ -93,8 +93,8 @@ class SessionControllerTest {
     @Test
     void deleteSession_delegatesToService() {
         Principal principal = createPrincipal(USERNAME);
-        sessionController.deleteSession("7", principal);
+        sessionController.deleteSession(7L, principal);
 
-        verify(sessionService).deleteSession("7", USERNAME);
+        verify(sessionService).deleteSession(7L, USERNAME);
     }
 }

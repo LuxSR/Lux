@@ -155,10 +155,10 @@ public class SessionService {
                                     session.isActive());
     }
 
-    public void deleteSession(final String sessionId, final String username) {
+    public void deleteSession(final long sessionId, final String username) {
         log.info("{} wants to delete session {}", username, sessionId);
 
-        Session session = sessionRepository.findById(toLong(sessionId))
+        Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
 
         boolean isOwner = session.getOwner().getUserName().equals(username);

@@ -235,7 +235,7 @@ class SessionServiceTest {
         when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        sessionService.deleteSession("7", OWNER_USERNAME);
+        sessionService.deleteSession(7L, OWNER_USERNAME);
 
         verify(sessionRepository).delete(ownedSession);
     }
@@ -247,7 +247,7 @@ class SessionServiceTest {
                 Optional.of(session(7L, false, owner)));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
+        assertThatThrownBy(() -> sessionService.deleteSession(7L, OWNER_USERNAME))
                 .isInstanceOf(AccessDeniedException.class);
 
         verify(sessionRepository, never()).delete(any());
@@ -260,7 +260,7 @@ class SessionServiceTest {
         when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName("admin")).thenReturn(Optional.of("ADMIN"));
 
-        sessionService.deleteSession("7", "admin");
+        sessionService.deleteSession(7L, "admin");
 
         verify(sessionRepository).delete(ownedSession);
     }
@@ -272,7 +272,7 @@ class SessionServiceTest {
         when(sessionRepository.findById(7L)).thenReturn(Optional.of(ownedSession));
         when(userRepository.findRoleByUserName("admin")).thenReturn(Optional.of("ADMIN"));
 
-        sessionService.deleteSession("7", "admin");
+        sessionService.deleteSession(7L, "admin");
 
         verify(sessionRepository).delete(ownedSession);
     }
@@ -284,7 +284,7 @@ class SessionServiceTest {
                 Optional.of(session(7L, true, owner)));
         when(userRepository.findRoleByUserName(OWNER_USERNAME)).thenReturn(Optional.of("USER"));
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
+        assertThatThrownBy(() -> sessionService.deleteSession(7L, OWNER_USERNAME))
                 .isInstanceOf(AccessDeniedException.class);
 
         verify(sessionRepository, never()).delete(any());
@@ -294,7 +294,7 @@ class SessionServiceTest {
     void deleteSession_unknownSession_throws() {
         when(sessionRepository.findById(7L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.deleteSession("7", OWNER_USERNAME))
+        assertThatThrownBy(() -> sessionService.deleteSession(7L, OWNER_USERNAME))
                 .isInstanceOf(SessionNotFoundException.class);
 
         verify(sessionRepository, never()).delete(any());
