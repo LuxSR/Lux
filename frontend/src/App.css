@@ -16,6 +16,10 @@
   padding: var(--space-5);
 }
 
+.app-main:only-child {
+  grid-column: 1 / -1;
+}
+
 /* ===== Topbar ===== */
 .topbar {
   position: relative;
