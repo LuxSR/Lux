@@ -17,8 +17,7 @@ export default function SidebarMenu() {
         <NavLink to="/sessions" className="sidebar-link">
           Sessions
         </NavLink>
-        {/* TODO: change NavLink to profile */}
-        <NavLink to="/" className="sidebar-link">
+        <NavLink to="/profile" className="sidebar-link">
           Profile
         </NavLink>
       </nav>

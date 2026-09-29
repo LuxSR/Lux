@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import lux.dartgame.model.Game;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Comparator;
 import java.util.List;
@@ -69,6 +70,17 @@ public class GameService {
                         .filter(game -> game.getWinner() == null)
                         .findFirst()
                         .orElseThrow(NoAvailableGameException::new));
+    }
+
+    // Same as getAvailableGame with the exception that it filters out games with points.
+    private Game getUnstartedGames(final List<Game> games) {
+        return games.stream()
+                .filter(game -> game.getWinner() == null
+                        && game.getGameStats().stream()
+                                .noneMatch(stat ->
+                                                stat.getPoints() > 0))
+                .findFirst()
+                .orElseThrow(NoAvailableGameException::new);
     }
 
     // Find the next player in turn for a game.
@@ -316,6 +328,30 @@ public class GameService {
                                                            stat.getCheckoutAccuracy()))
                         .collect(Collectors.toList()));
 
+    }
+    @Transactional
+    public void deleteGame(final long sessionId,
+                           final String player,
+                           final String gametype) {
+        log.info("Looking for {} in Session {}", gametype, sessionId);
+
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(SessionNotFoundException::new);
+
+        if (!session.getOwner().getUserName().equals(player)) {
+            throw new AccessDeniedException();
+        }
+
+        List<Game> games = session.getGames();
+        games = games.stream()
+                .filter(game -> game.getGametype()
+                        .getGametype().equals(gametype)).toList();
+
+        Game game = getUnstartedGames(games);
+
+        log.info("Deleting game {} in Session {}", gametype, sessionId);
+        session.getGames().remove(game);   // keep the aggregate in sync
+        gameRepository.delete(game);
     }
 
     // Called when a game finishes. Aggregates every participant's performance

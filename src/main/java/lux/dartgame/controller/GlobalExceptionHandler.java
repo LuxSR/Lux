@@ -79,7 +79,7 @@ public final class GlobalExceptionHandler {
         return e.getMessage();
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @ExceptionHandler(NoSessionsForThisUserException.class)
     public String handleSessionNotFoundForUser(final NoSessionsForThisUserException e) {
         log.warn("Session not found: {}", e.getMessage());
