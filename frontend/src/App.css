@@ -430,6 +430,17 @@
   margin-bottom: var(--space-5);
 }
 
+.session-detail-games-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.session-detail-games-header h2 {
+  margin: 0;
+}
+
 .session-detail-games {
   display: flex;
   flex-direction: column;

@@ -80,6 +80,15 @@ export async function createSession({ gamemodes, players = [] }) {
   });
 }
 
+// Requires being owner and session not finished Body is an array
+// of GameRequests. Returns the FULL updated SessionResponse
+export async function addGamesToSession({ sessionId, gamemodes }) {
+  return request(`/api/session/${sessionId}`, {
+    method: 'POST',
+    body: gamemodes.map((gameType) => ({ gameType })),
+  });
+}
+
 export const MAX_TOTAL_PLAYERS = 10;
 
 export async function getFinishedGames({ sessionId }) {

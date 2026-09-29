@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getFinishedGames, getSessionById, startGame } from '../api';
+import { getFinishedGames, getSessionById, getSessions, startGame } from '../api';
 import GameTypeCard from '../components/GameTypeCard';
 import FinishedGamesList from '../components/FinishedGamesList';
+import AddGamesModal from '../components/AddGamesModal';
 
 // &larr is an HTML entity for a left-pointing arrow (←)
 const BackToSessions = (
@@ -19,6 +20,8 @@ export default function SessionDetailPage() {
   const [actionError, setActionError] = useState('');
   const [finished, setFinished] = useState({});
   const [finishedGames, setFinishedGames] = useState([]);
+  const [addingGames, setAddingGames] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +45,24 @@ export default function SessionDetailPage() {
       })
       .catch(() => {
         // Finished-games list is must not block the page.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  // Adding games is owner-only server-side and SessionResponse carries no owner
+  // field. getSessions() is owner-scoped, so checking that list
+  useEffect(() => {
+    let cancelled = false;
+    getSessions()
+      .then((data) => {
+        if (!cancelled) {
+          setIsOwner(data.some((s) => String(s.id) === String(id)));
+        }
+      })
+      .catch(() => {
+        // Ownership lookup must not block the page; the button stays hidden.
       });
     return () => {
       cancelled = true;
@@ -80,6 +101,13 @@ export default function SessionDetailPage() {
     return counts;
   }, {});
 
+  const handleGamesAdded = (updated) => {
+    setSession(updated);
+    // Adding games can un-exhaust a gametype, so the stale "all finished"
+    // is removed
+    setFinished({});
+  };
+
   const handleStart = async (gamemode) => {
     try {
       const res = await startGame({ sessionId: id, gameType: gamemode });
@@ -111,7 +139,18 @@ export default function SessionDetailPage() {
         )}
       </div>
       {actionError && <p className="error-message">{actionError}</p>}
-      <h2>Games in this session</h2>
+      <div className="session-detail-games-header">
+        <h2>Games in this session</h2>
+        {isOwner && session.isActive && (
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => setAddingGames(true)}
+          >
+            Add game
+          </button>
+        )}
+      </div>
       {Object.keys(gamemodeCounts).length === 0 ? (
         <p className="state-message session-detail-empty">
           No games in this session
@@ -131,6 +170,13 @@ export default function SessionDetailPage() {
       )}
       <h2>Finished games</h2>
       <FinishedGamesList games={finishedGames} sessionId={id} />
+      {addingGames && (
+        <AddGamesModal
+          sessionId={id}
+          onClose={() => setAddingGames(false)}
+          onAdded={handleGamesAdded}
+        />
+      )}
     </div>
   );
 }
