@@ -21,7 +21,8 @@ export default function SessionDetailPage() {
   const [finished, setFinished] = useState({});
   const [finishedGames, setFinishedGames] = useState([]);
   const [addingGames, setAddingGames] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  // null until the ownership lookup resolves.
+  const [isOwner, setIsOwner] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,9 +62,10 @@ export default function SessionDetailPage() {
           setIsOwner(data.some((s) => String(s.id) === String(id)));
         }
       })
-      .catch(() => {
-        // Ownership lookup must not block the page; the button stays hidden.
-      });
+      .catch((err) =>
+        // A 404 means the user owns no sessions at all
+        setIsOwner(err.status !== 404)
+      );
     return () => {
       cancelled = true;
     };
