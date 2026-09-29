@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.math.NumberUtils.toLong;
+
+import lux.dartgame.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,14 +43,17 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final GametypeRepository gametypeRepository;
+    private final GameRepository gameRepository;
 
     @Autowired
     public SessionService(final SessionRepository sessionRepositoryParam,
                           final UserRepository userRepositoryParam,
-                          final GametypeRepository gametypeRepositoryParam) {
+                          final GametypeRepository gametypeRepositoryParam,
+                          final GameRepository gameRepositoryParam) {
         this.sessionRepository = sessionRepositoryParam;
         this.userRepository = userRepositoryParam;
         this.gametypeRepository = gametypeRepositoryParam;
+        this.gameRepository = gameRepositoryParam;
     }
 
     @Transactional(readOnly = true)
@@ -155,10 +160,10 @@ public class SessionService {
                                     session.isActive());
     }
 
-    public void deleteSession(final String sessionId, final String username) {
+    public void deleteSession(final long sessionId, final String username) {
         log.info("{} wants to delete session {}", username, sessionId);
 
-        Session session = sessionRepository.findById(toLong(sessionId))
+        Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(SessionNotFoundException::new);
 
         boolean isOwner = session.getOwner().getUserName().equals(username);
@@ -187,6 +192,11 @@ public class SessionService {
         if (!session.getOwner().getUserName().equals(username)) {
             throw new AccessDeniedException();
         }
+
+        int before = session.getGames().size();
+        session.getGames().removeIf(g -> g.getWinner() == null);
+        log.info("Session {} had {} unfinished games removed",
+                session.getSessionId(), before - session.getGames().size());
 
         session.setActive(false);
         log.info("Successfully finished session {}", session.getSessionId());

@@ -4,7 +4,9 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.validation.Valid;
 import lux.dartgame.dto.GameRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import lux.dartgame.dto.CreateSessionRequest;
@@ -30,8 +33,9 @@ public final class SessionController {
         this.sessionService = sessionServiceParam;
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public SessionResponse createSession(final @RequestBody(required = false)
+    public SessionResponse createSession(final @RequestBody(required = false) @Valid
                                                 CreateSessionRequest request,
                                          final Principal principal) {
         return sessionService.createSession(
@@ -44,10 +48,9 @@ public final class SessionController {
     public List<SessionResponse> getSession(final @RequestParam String username) {
         return sessionService.getSession(username);
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping
-    public void deleteSession(final @RequestParam String sessionId,
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("{sessionId}")
+    public void deleteSession(final @PathVariable long sessionId,
                               final Principal principal) {
         sessionService.deleteSession(sessionId, principal.getName());
     }
@@ -60,7 +63,7 @@ public final class SessionController {
 
     @PostMapping("{sessionId}")
     public SessionResponse addGames(final @PathVariable long sessionId,
-                                    final @RequestBody List<GameRequest> games,
+                                    final @RequestBody @Valid List<@Valid GameRequest> games,
                                     final Principal principal) {
         return sessionService.addGames(sessionId, games, principal.getName());
     }
