@@ -33,6 +33,10 @@ export default function SessionsList() {
     return <p className="state-message">Loading sessions...</p>;
   }
 
+  if (sessions.length === 0) {
+    return <p className="state-message">No sessions yet</p>;
+  }
+
   return (
     <div className="sessions-list">
       {sessions.map((session) => (

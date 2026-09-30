@@ -17,23 +17,31 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401) {
+  if (res.status === 401  && auth) {
     unauthorizedHandler?.();
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
-    const message = await res.text().catch(() => '');
+    // Errors use the ErrorResponse shape ({timestamp,status,error,message});
+    // fall back to the raw body for the bodyless 401/403 from the security
+    // filter chain, which never reaches the backend exception handler.
+    const raw = await res.text().catch(() => '');
+    let message = raw;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.message) message = parsed.message;
+    } catch {
+      // not JSON - keep the raw text
+    }
     const err = new Error(message || `Request failed: ${res.status}`);
     err.status = res.status;
     throw err;
   }
-
-  // Void endpoints return an empty body: PUT /api/session/{id} is 200, while
-  // DELETE /api/session/{id} and DELETE /api/session/{id}/games are 204. Parse
-  // defensively so an empty body resolves to null; non-JSON bodies still
-  // reject, which keeps every existing endpoint behaving as before.
+  // 204 (and void 200s) carry no body, so res.json() would reject on an empty
+  // stream. Return [] so list-shaped callers render an empty list rather than
+  // hanging on a null state.
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return text ? JSON.parse(text) : [];
 }
 
 export function register({ username, password, email }) {

@@ -82,12 +82,27 @@ class SessionControllerTest {
                 List.of(gametype("301")), false);
         List<SessionResponse> responses = List.of(first, second);
 
-        when(sessionService.getSession(USERNAME)).thenReturn(responses);
+        when(sessionService.getSession(USERNAME, Optional.empty())).thenReturn(responses);
 
-        List<SessionResponse> result = sessionController.getSession(USERNAME);
+        List<SessionResponse> result = sessionController.getSession(USERNAME,
+                null);
 
         assertThat(result).containsExactly(first, second);
-        verify(sessionService).getSession(USERNAME);
+        verify(sessionService).getSession(USERNAME, Optional.empty());
+    }
+
+    @Test
+    void getSession_withGameRequest_passesItThroughToService() {
+        GameRequest gameRequest = new GameRequest("301");
+
+        when(sessionService.getSession(USERNAME, Optional.of(gameRequest)))
+                .thenReturn(List.of());
+
+        List<SessionResponse> result = sessionController.getSession(USERNAME,
+                gameRequest);
+
+        assertThat(result).isEmpty();
+        verify(sessionService).getSession(USERNAME, Optional.of(gameRequest));
     }
 
     @Test

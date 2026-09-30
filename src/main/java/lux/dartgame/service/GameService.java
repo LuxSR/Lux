@@ -384,7 +384,7 @@ public class GameService {
 
             // Running average over games played
             playerStats.setAvgPoints((playerStats.getAvgPoints() * (played - 1)
-                    + stat.getPoints()) / played);
+                    + (float) stat.getPoints() / stat.getTurn()) / played);
             playerStats.setAvgCheckoutAccuracy((playerStats.getAvgCheckoutAccuracy() * (played - 1)
                     + stat.getCheckoutAccuracy()) / played);
         }

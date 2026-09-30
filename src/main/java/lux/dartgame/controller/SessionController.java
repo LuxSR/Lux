@@ -45,9 +45,12 @@ public final class SessionController {
     }
 
     @GetMapping
-    public List<SessionResponse> getSession(final @RequestParam String username) {
-        return sessionService.getSession(username);
+    public List<SessionResponse> getSession(final @RequestParam String username,
+                                            final @RequestParam(required = false) GameRequest
+                                                    gameRequest) {
+        return sessionService.getSession(username, Optional.ofNullable(gameRequest));
     }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("{sessionId}")
     public void deleteSession(final @PathVariable long sessionId,
