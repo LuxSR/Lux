@@ -11,6 +11,7 @@ on:
     branches: [ "**" ]
   pull_request:
     branches: [ "main", "dev"]
+  workflow_call:
 
 jobs:
   build:
