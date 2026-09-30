@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -88,13 +89,26 @@ public class SessionService {
     }
 
     @Transactional(readOnly = true)
-    public List<SessionResponse> getSession(final String username) {
+    public List<SessionResponse> getSession(final String username,
+                                            final Optional<GameRequest> gameRequest) {
         log.info("Looking for all sessions owned by {}", username);
 
         User owner = userRepository.findByUserName(username)
                                    .orElseThrow(UsernameNotFoundException::new);
 
         List<Session> sessions = sessionRepository.findByOwner(owner);
+
+        // Spring may hand over Optional.empty() or a present request with a null
+        // gameType, so normalise to a plain String before filtering.
+        if (gameRequest.isPresent() && gameRequest.get().gameType() != null) {
+            String gametype = gameRequest.get().gameType();
+            log.info("Filtering sessions of {} by gametype {}", username, gametype);
+            sessions = sessions.stream()
+                    .filter(s -> s.getGames()
+                            .stream()
+                            .anyMatch(g -> gametype.equals(g.getGametype().getGametype())))
+                    .toList();
+        }
 
         if (sessions.isEmpty()) {
             throw new NoSessionsForThisUserException(owner.getUserName());

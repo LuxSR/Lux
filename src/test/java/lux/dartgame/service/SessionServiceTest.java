@@ -201,7 +201,8 @@ class SessionServiceTest {
         when(sessionRepository.findByOwner(owner)).thenReturn(
                 List.of(session(1L, true, owner), session(2L, true, owner)));
 
-        List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME);
+        List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME,
+                Optional.empty());
 
         assertThat(result).containsExactly(
                 new SessionResponse(1L, PLAYED_AT.toString(), List.of(), true),
@@ -212,7 +213,7 @@ class SessionServiceTest {
     void getSession_unknownUser_throws() {
         when(userRepository.findByUserName("ghost")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> sessionService.getSession("ghost"))
+        assertThatThrownBy(() -> sessionService.getSession("ghost", Optional.empty()))
                 .isInstanceOf(UsernameNotFoundException.class);
 
         verify(sessionRepository, never()).findByOwner(any());
@@ -224,8 +225,77 @@ class SessionServiceTest {
         when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
         when(sessionRepository.findByOwner(owner)).thenReturn(List.of());
 
-        assertThatThrownBy(() -> sessionService.getSession(OWNER_USERNAME))
+        assertThatThrownBy(() -> sessionService.getSession(OWNER_USERNAME, Optional.empty()))
                 .isInstanceOf(NoSessionsForThisUserException.class);
+    }
+
+    @Test
+    void getSession_withGameType_returnsOnlySessionsContainingIt() {
+        User owner = user(OWNER_USERNAME);
+        Session with301 = session(1L, true, owner);
+        existingGame(with301, "301");
+        Session with501 = session(2L, true, owner);
+        existingGame(with501, "501");
+
+        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+        when(sessionRepository.findByOwner(owner)).thenReturn(List.of(with301, with501));
+
+        List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME,
+                Optional.of(new GameRequest("301")));
+
+        assertThat(result).containsExactly(
+                new SessionResponse(1L, PLAYED_AT.toString(),
+                        List.of(new GametypeResponse("301")), true));
+    }
+
+    @Test
+    void getSession_withGameType_keepsEveryGametypeOfAMatchedSession() {
+        User owner = user(OWNER_USERNAME);
+        Session both = session(1L, true, owner);
+        existingGame(both, "301");
+        existingGame(both, "501");
+
+        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+        when(sessionRepository.findByOwner(owner)).thenReturn(List.of(both));
+
+        List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME,
+                Optional.of(new GameRequest("301")));
+
+        assertThat(result).containsExactly(
+                new SessionResponse(1L, PLAYED_AT.toString(),
+                        List.of(new GametypeResponse("301"),
+                                new GametypeResponse("501")), true));
+    }
+
+    @Test
+    void getSession_gameTypeInNoSession_throws() {
+        User owner = user(OWNER_USERNAME);
+        Session with501 = session(1L, true, owner);
+        existingGame(with501, "501");
+
+        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+        when(sessionRepository.findByOwner(owner)).thenReturn(List.of(with501));
+
+        assertThatThrownBy(() -> sessionService.getSession(OWNER_USERNAME,
+                Optional.of(new GameRequest("301"))))
+                .isInstanceOf(NoSessionsForThisUserException.class);
+    }
+
+    @Test
+    void getSession_withNullGameType_doesNotFilter() {
+        User owner = user(OWNER_USERNAME);
+        Session with501 = session(1L, true, owner);
+        existingGame(with501, "501");
+
+        when(userRepository.findByUserName(OWNER_USERNAME)).thenReturn(Optional.of(owner));
+        when(sessionRepository.findByOwner(owner)).thenReturn(List.of(with501));
+
+        List<SessionResponse> result = sessionService.getSession(OWNER_USERNAME,
+                Optional.of(new GameRequest(null)));
+
+        assertThat(result).containsExactly(
+                new SessionResponse(1L, PLAYED_AT.toString(),
+                        List.of(new GametypeResponse("501")), true));
     }
 
     @Test
