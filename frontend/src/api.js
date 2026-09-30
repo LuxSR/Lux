@@ -117,7 +117,7 @@ export function deleteSession({ sessionId }) {
 }
 
 // Delete the next UNSTARTED game of `gamemode` from a session
-// the backend picks the first unstarted game of that type 
+// the backend picks the first unstarted game of that type
 // 404 if no unstarted game of that type is left.
 export function deleteGame({ sessionId, gamemode }) {
   return request(

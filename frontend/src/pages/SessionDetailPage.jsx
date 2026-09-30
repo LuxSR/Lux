@@ -7,6 +7,7 @@ import AddGamesModal from '../components/AddGamesModal';
 import ConfirmFinishModal from '../components/ConfirmFinishModal';
 import ConfirmDeleteSession from '../components/ConfirmDeleteSession';
 import ConfirmDeleteGame from '../components/ConfirmDeleteGame';
+import { useAuth } from '../useAuth';
 
 // &larr is an HTML entity for a left-pointing arrow (←)
 const BackToSessions = (
@@ -18,6 +19,7 @@ const BackToSessions = (
 export default function SessionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [session, setSession] = useState(null);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
@@ -169,7 +171,7 @@ export default function SessionDetailPage() {
       </div>
       {actionError && <p className="error-message">{actionError}</p>}
       <div className="session-detail-actions">
-        {isOwner && session.isActive && (
+        {(isAdmin || (isOwner && session.isActive)) && (
           <button
             className="btn btn-danger"
             type="button"
