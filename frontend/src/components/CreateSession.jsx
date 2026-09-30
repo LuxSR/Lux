@@ -22,9 +22,10 @@ export default function CreateSession({ onClose, onCreated }) {
       .catch((err) => setError(err.message));
   }, []);
 
-  function addGamemode() {
-    if (pick) {
-      setSelected([...selected, pick]);
+  function selectGamemode(event) {
+    const gamemode = event.target.value;
+    if (gamemode) {
+      setSelected((current) => [...current, gamemode]);
       setPick('');
     }
   }
@@ -96,7 +97,7 @@ export default function CreateSession({ onClose, onCreated }) {
           {available && (
             <div className="gamemode-picker">
               <div className="gamemode-picker-row">
-                <select value={pick} onChange={(e) => setPick(e.target.value)}>
+                <select value={pick} onChange={selectGamemode}>
                   <option value="">Select gamemode...</option>
                   {available.map((gametype) => (
                     <option key={gametype.gamemode} value={gametype.gamemode}>
@@ -104,9 +105,6 @@ export default function CreateSession({ onClose, onCreated }) {
                     </option>
                   ))}
                 </select>
-                <button className="btn" type="button" onClick={addGamemode}>
-                  Add
-                </button>
               </div>
               {selected.length > 0 && (
                 <div className="gamemode-pills">
