@@ -60,10 +60,11 @@ export function login({ username, password }) {
   });
 }
 
-export function getSessions() {
+export function getSessions({ gamemode } = {}) {
   const token = localStorage.getItem('token');
   const username = getUsername(token);
-  return request(`/api/session?username=${encodeURIComponent(username)}`);
+  const gamemodeQuery = gamemode ? `&gameRequest=${encodeURIComponent(gamemode)}` : '';
+  return request(`/api/session?username=${encodeURIComponent(username)}${gamemodeQuery}`);
 }
 
 export function getAllGamemodes() {
