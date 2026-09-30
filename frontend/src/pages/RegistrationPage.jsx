@@ -6,6 +6,7 @@ import { register } from '../api';
 export default function RegisterPage() {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -15,6 +16,8 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
     setError('');
     try {
       const res = await register(formData);
@@ -22,6 +25,8 @@ export default function RegisterPage() {
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -59,8 +64,8 @@ export default function RegisterPage() {
               onChange={handleChange}
             />
           </div>
-          <button className="btn btn-primary" type="submit">
-            Register
+          <button className="btn btn-primary" type="submit" disabled={submitting}>
+            {submitting ? 'Registering...' : 'Register'}
           </button>
         </form>
         {error && <p className="error-message">{error}</p>}

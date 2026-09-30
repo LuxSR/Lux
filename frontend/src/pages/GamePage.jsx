@@ -8,9 +8,9 @@ const DART_VALUES = Array.from({ length: 20 }, (_, i) => i + 1).concat(25);
 
 function emptySlots() {
   return [
-    { value: '', multiplier: '' },
-    { value: '', multiplier: '' },
-    { value: '', multiplier: '' },
+    { value: '', multiplier: 1 },
+    { value: '', multiplier: 1 },
+    { value: '', multiplier: 1 },
   ];
 }
 
@@ -62,9 +62,7 @@ export default function GamePage() {
     const multiplier = Number(slot.multiplier);
     return sum + (value > 0 && multiplier > 0 ? value * multiplier : 0);
   }, 0);
-  const allFilled = slots.every(
-    (slot) => slot.value !== '' && slot.multiplier !== ''
-  );
+  const allFilled = slots.every((slot) => slot.value !== '');
 
   function updateSlot(index, field, value) {
     setSlots((prev) => {
@@ -201,7 +199,6 @@ export default function GamePage() {
                     }
                     disabled={submitting || Number(slot.value) === 0}
                   >
-                    <option value="">—</option>
                     {multipliersFor(slot).map((mult) => (
                       <option key={mult} value={mult}>
                         &times;{mult}

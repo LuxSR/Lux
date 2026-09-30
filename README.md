@@ -1,44 +1,92 @@
-# Lux
+# Super Darter
 
-## Contributions
-The code follows the standard Java coding conventions and is formatted using Sun Code Conventions. 
-Branches follow the GitFlow model, and are named according to the issue they are addressing with type prefix, e.g. feat/issue-1234.
-Pull requests are made against dev branch, dev will be merged into main.
+Super Darter is a web application for organising and playing dart-game sessions. Players can register, create sessions, select game modes, invite other players, record rounds, finish sessions, and review game and player statistics.
 
-The project has the structure:
+**Live application:** https://icy-desert-0c9410d03.4.azurestaticapps.net/
 
-    ├── src/
-    │   └── main/
-    │       └── java
-    │            └── lux/
-    │                └── dartgame/
-    │                    └── controller/
-    │                    └── model/
-    │                    └── repository/
-    │                    └── service/
-    └── resources/
-        └── db/
-            └── migration/
+## Run Locally
 
-## Database
+### Prerequisites
 
-The project uses PostgreSQL with Flyway for schema management and seeding.
+- Docker Desktop with Docker Compose
 
-### Setup
+### Configuration
 
-1. Create a PostgreSQL database named `dartgame`
-2. Update connection details in `src/main/resources/application.properties` if needed
+Create a `.env` file in the repository root. It is deliberately ignored by Git.
 
-### Seeding
+```dotenv
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+JWT_SECRET=
+```
 
-Seed data runs automatically on startup via Flyway migrations:
+### Start the Stack
 
-- `V1__init_schema.sql` - Creates all tables
-- `V2__seed_data.sql` - Seeds initial data
+Run the complete development stack with hot reload:
 
-The seed includes:
-- 3 users (Alice van Buren, Bob de Groot, Luke Littler)
-- 5 gametypes (501, 301, Cricket, Killer, Around the Clock)
-- Sessions, games, and statistics with realistic dart data
+```bash
+docker compose --profile dev up --build
+```
 
-Re-running is safe - all inserts use `ON CONFLICT DO NOTHING`.
+Open http://localhost:5173. The frontend proxies API calls to the backend at http://localhost:8080. Stop the stack with `Ctrl+C`; add `-v` to `docker compose down` if you also want to remove the local database volume.
+
+## Tests
+
+Run the backend unit tests from the repository root:
+
+```bash
+mvn test
+```
+
+The frontend has no automated test script. Run its static checks from `frontend/`:
+
+```bash
+npm ci
+npm run lint
+```
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `POSTGRES_DB` | Yes | PostgreSQL database name. |
+| `POSTGRES_USER` | Yes | PostgreSQL user and backend database username. |
+| `POSTGRES_PASSWORD` | Yes | Password for the PostgreSQL user. |
+| `JWT_SECRET` | Yes | Secret used to sign and validate JSON Web Tokens. Use a long, random value outside local development. |
+| `CORS_ALLOWED_ORIGINS` | No | Allowed frontend origin for the API. Defaults to `http://localhost:5173`. |
+| `VITE_API_URL` | No | Backend URL compiled into a production frontend build. The local Docker development frontend uses its API proxy instead. |
+
+## Architecture
+
+- **Frontend:** React 19 and Vite provide the single-page application in `frontend/`. React Router protects session, game, and profile routes; the client stores the JWT and calls the REST API.
+- **Backend:** Java 25, Spring Boot, Spring Security, and JPA implement authentication plus session, game, game-mode, and player-statistics APIs in `src/main/java/`.
+- **Database:** PostgreSQL 16 stores users, sessions, games, game modes, and statistics. Flyway migrations in `src/main/resources/db/migration/` create and seed the schema on startup.
+- **Local deployment:** Docker Compose starts PostgreSQL, the Spring Boot development server, and the Vite development server. The production profile (`docker compose --profile prod up --build`) instead serves the built frontend through Nginx.
+- **Cloud deployment:** GitHub Actions deploys the frontend to Azure Static Web Apps and the backend JAR to Azure App Service. The production frontend is configured to call `https://backend-superdarter-d4d6d7cbefhccpd2.germanywestcentral-01.azurewebsites.net`.
+
+## Team
+
+- Sander Sandvik Nessa
+- Riccardo Ieva
+
+### Domain Mapping
+
+The team mapped the five required placeholders to the application domain as follows:
+
+| Placeholder | Super Darter domain |
+| --- | --- |
+| Primary | Session |
+| Child | Game |
+| User | User |
+| Tag | Game mode |
+| Interaction | Playing games with other players |
+
+## Project Layout
+
+```text
+frontend/                         React and Vite application
+src/main/java/lux/dartgame/       Spring Boot API
+src/main/resources/db/migration/  Flyway schema and seed migrations
+.github/workflows/                Azure deployment workflows
+```

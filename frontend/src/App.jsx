@@ -8,6 +8,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import SessionsPage from './pages/SessionsPage';
 import SessionDetailPage from './pages/SessionDetailPage';
 import GamePage from './pages/GamePage';
+import ProfilePage from './pages/ProfilePage';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -25,6 +26,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               {/* Pages with topbar+sidemenu, log in required*/}
               <Route path="/sessions" element={<SessionsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/session/:id" element={<SessionDetailPage />} />
               <Route
                 path="/session/:id/game/:gameId"
