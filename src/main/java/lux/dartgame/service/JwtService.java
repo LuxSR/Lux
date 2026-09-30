@@ -18,6 +18,10 @@ import java.util.Date;
 @Slf4j
 @Service
 public final class JwtService {
+    private static final String CLAIM_ROLE = "role";
+    private static final String AUTHORITY_PREFIX = "ROLE_";
+    private static final String DEFAULT_ROLE = "USER";
+
     private final SecretKey key;
     private final long expirationMinutes;
 
@@ -34,10 +38,22 @@ public final class JwtService {
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim(CLAIM_ROLE, roleOf(userDetails))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(key)
                 .compact();
+    }
+
+    // ("ADMIN", not "ROLE_ADMIN").
+    // Falls back to the least-privileged role so the claim is never null or blank.
+    private String roleOf(final UserDetails userDetails) {
+        return userDetails.getAuthorities().stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority())
+                .filter(authority -> authority.startsWith(AUTHORITY_PREFIX))
+                .map(authority -> authority.substring(AUTHORITY_PREFIX.length()))
+                .orElse(DEFAULT_ROLE);
     }
 
     public String extractUsername(final String token) {

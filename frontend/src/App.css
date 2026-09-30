@@ -158,6 +158,15 @@
   margin-bottom: var(--space-4);
 }
 
+.sessions-filter {
+  margin-bottom: var(--space-4);
+}
+
+.sessions-filter .state-message,
+.sessions-filter .error-message {
+  padding: 0;
+}
+
 .sessions-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -244,6 +253,12 @@
 .game-type-card-finished {
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+.game-type-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* ===== Forms ===== */
@@ -449,6 +464,7 @@
 .session-detail-actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
 
@@ -669,6 +685,23 @@
 }
 
 @media (max-width: 560px) {
+  .sessions-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sessions-header .btn {
+    width: 100%;
+  }
+
+  .sessions-filter .gamemode-picker-row {
+    flex-direction: column;
+  }
+
+  .sessions-filter .gamemode-picker-row .btn {
+    width: 100%;
+  }
+
   .profile-stats {
     grid-template-columns: 1fr;
   }

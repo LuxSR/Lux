@@ -1,6 +1,7 @@
 package lux.dartgame.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import lux.dartgame.dto.ErrorResponse;
 import lux.dartgame.exception.AccessDeniedException;
 import lux.dartgame.exception.EmailAlreadyExistsException;
 import lux.dartgame.exception.GameModeNotFoundException;
@@ -15,10 +16,10 @@ import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameAlreadyExistsException;
 import lux.dartgame.exception.UsernameNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
@@ -27,111 +28,128 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public final class GlobalExceptionHandler {
 
-    @ResponseStatus(HttpStatus.CONFLICT)
+    // Message returned instead of an internal failure, so no server detail leaks.
+
+    private static final String GENERIC_ERROR_MESSAGE =
+            "An unexpected error occurred. Please contact support.";
+
     @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public String handleUsernameAlreadyExists(final UsernameAlreadyExistsException e) {
+    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExists(
+            final UsernameAlreadyExistsException e) {
         log.warn("Username already exists: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public String handleEmailAlreadyExists(final EmailAlreadyExistsException e) {
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(
+            final EmailAlreadyExistsException e) {
         log.warn("Email already exists: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.CONFLICT, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(BadCredentialsException.class)
-    public String handleBadCredentials(final BadCredentialsException e) {
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            final BadCredentialsException e) {
         log.warn("Bad credentials attempt");
-        return "Invalid username or password.";
+        return respond(HttpStatus.UNAUTHORIZED, "Invalid username or password.");
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public String handleValidationErrors(final MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
+            final MethodArgumentNotValidException e) {
         log.warn("Validation error: {}", e.getMessage());
-        return e.getBindingResult().getFieldErrors().stream()
+        return respond(HttpStatus.BAD_REQUEST, e.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(", ")));
     }
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(InvalidScoreException.class)
-    public String handleInvalidScore(final InvalidScoreException e) {
+    public ResponseEntity<ErrorResponse> handleInvalidScore(final InvalidScoreException e) {
         log.error("INVALID SCORE", e);
-        return e.getMessage();
+        return respond(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
     }
 
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RoleNotFoundException.class)
-    public String handleRoleNotFound(final RoleNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleRoleNotFound(final RoleNotFoundException e) {
         log.error("Role not found", e);
-        return e.getMessage();
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(UsernameNotFoundException.class)
-    public String handleUsernameNotFound(final UsernameNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleUsernameNotFound(
+            final UsernameNotFoundException e) {
         log.warn("Username not found: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    //  Note: HTTP forbids a body on 204, so the payload below is discarded by the
+    //  container and the client receives no message. Kept as-is to avoid changing
+    //  the endpoint contract; the frontend's "no sessions yet" branch keys off 404
+    //  and therefore never fires.
+
     @ExceptionHandler(NoSessionsForThisUserException.class)
-    public String handleSessionNotFoundForUser(final NoSessionsForThisUserException e) {
+    public ResponseEntity<ErrorResponse> handleSessionNotFoundForUser(
+            final NoSessionsForThisUserException e) {
         log.warn("Session not found: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NO_CONTENT, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(SessionNotFoundException.class)
-    public String handleSessionNotFound(final SessionNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleSessionNotFound(
+            final SessionNotFoundException e) {
         log.warn("Session not found: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(GameModeNotFoundException.class)
-    public String handleGameModeNotFound(final GameModeNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleGameModeNotFound(
+            final GameModeNotFoundException e) {
         log.warn("Gametype not found: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(GameStatNotFoundException.class)
-    public String handleGameStatNotFound(final GameStatNotFoundException e) {
-        log.warn("Gametype not found: {}", e.getMessage());
-        return e.getMessage();
+    public ResponseEntity<ErrorResponse> handleGameStatNotFound(
+            final GameStatNotFoundException e) {
+        log.warn("Game stat not found: {}", e.getMessage());
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(GameNotFoundException.class)
-    public String handleGameNotFound(final GameNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleGameNotFound(final GameNotFoundException e) {
         log.warn("Game not found: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoAvailableGameException.class)
-    public String handleGameNotAvailable(final NoAvailableGameException e) {
+    public ResponseEntity<ErrorResponse> handleGameNotAvailable(
+            final NoAvailableGameException e) {
         log.warn("Game not available in this session: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(AccessDeniedException.class)
-    public String handleAccessDenied(final AccessDeniedException e) {
+    public ResponseEntity<ErrorResponse> handleAccessDenied(final AccessDeniedException e) {
         log.warn("Access denied: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.FORBIDDEN, e.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(InvalidTurnException.class)
-    public String handleInvalidTurn(final InvalidTurnException e) {
+    public ResponseEntity<ErrorResponse> handleInvalidTurn(final InvalidTurnException e) {
         log.warn("Invalid turn: {}", e.getMessage());
-        return e.getMessage();
+        return respond(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    // Catch-all for anything not handled above, so every failure shares one shape
+    // instead of falling through to the framework's default error body. The stack
+    // trace is logged only and never returned to the client.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(final Exception e) {
+        log.error("Internal error caught: ", e);
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR, GENERIC_ERROR_MESSAGE);
+    }
+
+    private ResponseEntity<ErrorResponse> respond(final HttpStatus status, final String message) {
+        return ResponseEntity.status(status).body(ErrorResponse.of(status, message));
     }
 }

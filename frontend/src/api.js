@@ -17,22 +17,31 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (res.status === 401) {
+  if (res.status === 401  && auth) {
     unauthorizedHandler?.();
     throw new Error('Unauthorized');
   }
   if (!res.ok) {
-    const message = await res.text().catch(() => '');
+    // Errors use the ErrorResponse shape ({timestamp,status,error,message});
+    // fall back to the raw body for the bodyless 401/403 from the security
+    // filter chain, which never reaches the backend exception handler.
+    const raw = await res.text().catch(() => '');
+    let message = raw;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.message) message = parsed.message;
+    } catch {
+      // not JSON - keep the raw text
+    }
     const err = new Error(message || `Request failed: ${res.status}`);
     err.status = res.status;
     throw err;
   }
-  
-  // Void endpoints (PUT /api/session/{id}, DELETE /api/session) return an empty
-  // 200 body, so parse defensively: non-JSON bodies still reject, which keeps
-  // every existing endpoint behaving as before.
+  // 204 (and void 200s) carry no body, so res.json() would reject on an empty
+  // stream. Return [] so list-shaped callers render an empty list rather than
+  // hanging on a null state.
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return text ? JSON.parse(text) : [];
 }
 
 export function register({ username, password, email }) {
@@ -51,10 +60,11 @@ export function login({ username, password }) {
   });
 }
 
-export function getSessions() {
+export function getSessions({ gamemode } = {}) {
   const token = localStorage.getItem('token');
   const username = getUsername(token);
-  return request(`/api/session?username=${encodeURIComponent(username)}`);
+  const gamemodeQuery = gamemode ? `&gameRequest=${encodeURIComponent(gamemode)}` : '';
+  return request(`/api/session?username=${encodeURIComponent(username)}${gamemodeQuery}`);
 }
 
 export function getAllGamemodes() {
@@ -107,6 +117,22 @@ export async function addGamesToSession({ sessionId, gamemodes }) {
 // Finish a session. Owner-only (403), 404 if unknown, 200 with an EMPTY body.
 export function finishSession({ sessionId }) {
   return request(`/api/session/${sessionId}`, { method: 'PUT' });
+}
+
+// Delete a session permanently. Owner-only while the session is active (403),
+// 404 if unknown, 204 with an EMPTY body. Cascades to its games and stats.
+export function deleteSession({ sessionId }) {
+  return request(`/api/session/${sessionId}`, { method: 'DELETE' });
+}
+
+// Delete the next UNSTARTED game of `gamemode` from a session
+// the backend picks the first unstarted game of that type
+// 404 if no unstarted game of that type is left.
+export function deleteGame({ sessionId, gamemode }) {
+  return request(
+    `/api/session/${sessionId}/games?gametype=${encodeURIComponent(gamemode)}`,
+    { method: 'DELETE' }
+  );
 }
 
 export const MAX_TOTAL_PLAYERS = 10;
