@@ -5,6 +5,8 @@ import GameTypeCard from '../components/GameTypeCard';
 import FinishedGamesList from '../components/FinishedGamesList';
 import AddGamesModal from '../components/AddGamesModal';
 import ConfirmFinishModal from '../components/ConfirmFinishModal';
+import ConfirmDeleteSession from '../components/ConfirmDeleteSession';
+import ConfirmDeleteGame from '../components/ConfirmDeleteGame';
 
 // &larr is an HTML entity for a left-pointing arrow (←)
 const BackToSessions = (
@@ -23,6 +25,9 @@ export default function SessionDetailPage() {
   const [finishedGames, setFinishedGames] = useState([]);
   const [addingGames, setAddingGames] = useState(false);
   const [finishingSession, setFinishingSession] = useState(false);
+  const [deletingSession, setDeletingSession] = useState(false);
+  // Holds the gamemode whose Remove was clicked, or null when no modal is open.
+  const [deletingGame, setDeletingGame] = useState(null);
   // null until the ownership lookup resolves.
   const [isOwner, setIsOwner] = useState(null);
 
@@ -118,6 +123,20 @@ export default function SessionDetailPage() {
     setSession(fresh);
   };
 
+  // The session is gone, so there is nothing left to render: leave the page
+  // rather than refetch, which would only 404.
+  const handleDeleted = () => {
+    navigate('/sessions');
+  };
+
+  // The DELETE removes one game without saying which, so the local gametype
+  // counts are now wrong and have to be refetched.
+  const handleGameDeleted = async () => {
+    const fresh = await getSessionById(id);
+    setSession(fresh);
+    setDeletingGame(null);
+  };
+
   const handleStart = async (gamemode) => {
     try {
       const res = await startGame({ sessionId: id, gameType: gamemode });
@@ -150,6 +169,15 @@ export default function SessionDetailPage() {
       </div>
       {actionError && <p className="error-message">{actionError}</p>}
       <div className="session-detail-actions">
+        {isOwner && session.isActive && (
+          <button
+            className="btn btn-danger"
+            type="button"
+            onClick={() => setDeletingSession(true)}
+          >
+            Delete session
+          </button>
+        )}
         {isOwner && session.isActive ? (
           <button
             className="btn btn-danger"
@@ -188,6 +216,8 @@ export default function SessionDetailPage() {
               gamemode={gamemode}
               count={count}
               onStart={() => handleStart(gamemode)}
+              onDelete={() => setDeletingGame(gamemode)}
+              deletable={Boolean(isOwner && session.isActive)}
               finishedMessage={finished[gamemode]}
               playable={session.isActive}
             />
@@ -208,6 +238,22 @@ export default function SessionDetailPage() {
           sessionId={id}
           onClose={() => setFinishingSession(false)}
           onFinished={handleFinished}
+        />
+      )}
+      {deletingSession && (
+        <ConfirmDeleteSession
+          sessionId={id}
+          onClose={() => setDeletingSession(false)}
+          onDeleted={handleDeleted}
+        />
+      )}
+      {deletingGame && (
+        <ConfirmDeleteGame
+          sessionId={id}
+          gamemode={deletingGame}
+          count={gamemodeCounts[deletingGame]}
+          onClose={() => setDeletingGame(null)}
+          onDeleted={handleGameDeleted}
         />
       )}
     </div>

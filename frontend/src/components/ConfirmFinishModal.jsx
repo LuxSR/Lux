@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { finishSession } from '../api';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function ConfirmFinishModal({ sessionId, onClose, onFinished }) {
   const [error, setError] = useState('');
@@ -25,33 +26,15 @@ export default function ConfirmFinishModal({ sessionId, onClose, onFinished }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2>Finish this session?</h2>
-        <p>
-          This cannot be undone, and no further games can be started in this
-          session.
-        </p>
-        {error && <p className="error-message">{error}</p>}
-        <div className="modal-actions">
-          <button className="btn" type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn btn-danger"
-            type="button"
-            disabled={finishing}
-            onClick={handleFinish}
-          >
-            {finishing ? 'Finishing…' : 'Finish session'}
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      title="Finish this session?"
+      body="This cannot be undone, and no further games can be started in this session."
+      confirmLabel="Finish session"
+      busyLabel="Finishing…"
+      error={error}
+      busy={finishing}
+      onConfirm={handleFinish}
+      onCancel={onClose}
+    />
   );
 }
