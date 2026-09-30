@@ -8,9 +8,10 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "**" ]
+    branches-ignore: [ "main" ]
   pull_request:
     branches: [ "main", "dev"]
+  workflow_call:
 
 jobs:
   build:
