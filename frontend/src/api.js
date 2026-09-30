@@ -27,10 +27,11 @@ async function request(path, { method = 'GET', body, auth = true } = {}) {
     err.status = res.status;
     throw err;
   }
-  
-  // Void endpoints (PUT /api/session/{id}, DELETE /api/session) return an empty
-  // 200 body, so parse defensively: non-JSON bodies still reject, which keeps
-  // every existing endpoint behaving as before.
+
+  // Void endpoints return an empty body: PUT /api/session/{id} is 200, while
+  // DELETE /api/session/{id} and DELETE /api/session/{id}/games are 204. Parse
+  // defensively so an empty body resolves to null; non-JSON bodies still
+  // reject, which keeps every existing endpoint behaving as before.
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
@@ -107,6 +108,22 @@ export async function addGamesToSession({ sessionId, gamemodes }) {
 // Finish a session. Owner-only (403), 404 if unknown, 200 with an EMPTY body.
 export function finishSession({ sessionId }) {
   return request(`/api/session/${sessionId}`, { method: 'PUT' });
+}
+
+// Delete a session permanently. Owner-only while the session is active (403),
+// 404 if unknown, 204 with an EMPTY body. Cascades to its games and stats.
+export function deleteSession({ sessionId }) {
+  return request(`/api/session/${sessionId}`, { method: 'DELETE' });
+}
+
+// Delete the next UNSTARTED game of `gamemode` from a session
+// the backend picks the first unstarted game of that type
+// 404 if no unstarted game of that type is left.
+export function deleteGame({ sessionId, gamemode }) {
+  return request(
+    `/api/session/${sessionId}/games?gametype=${encodeURIComponent(gamemode)}`,
+    { method: 'DELETE' }
+  );
 }
 
 export const MAX_TOTAL_PLAYERS = 10;

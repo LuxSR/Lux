@@ -4,6 +4,8 @@ export default function GameTypeCard({
   gamemode,
   count,
   onStart,
+  onDelete,
+  deletable = false,
   finishedMessage,
   playable = true,
 }) {
@@ -24,6 +26,11 @@ export default function GameTypeCard({
     <div className="card game-type-card">
       <span className="game-type-card-label">{label}</span>
       <div className="game-type-card-actions">
+        {deletable && (
+          <button type="button" className="btn btn-danger" onClick={onDelete}>
+            Remove
+          </button>
+        )}
         {finishedMessage ? (
           <span className="game-type-card-finished">{finishedMessage}</span>
         ) : (
