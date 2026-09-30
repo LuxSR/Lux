@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { getSessions } from '../api';
 import SessionCard from './SessionCard';
 
-export default function SessionsList() {
+export default function SessionsList({ gamemode }) {
   const [sessions, setSessions] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    getSessions()
+    setSessions(null);
+    setError('');
+    getSessions({ gamemode })
       .then((data) => {
         if (!cancelled) setSessions(data);
       })
@@ -18,11 +20,15 @@ export default function SessionsList() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [gamemode]);
 
   if (error) {
     if (error.status === 404) {
-      return <p className="state-message">No sessions yet</p>;
+      return (
+        <p className="state-message">
+          {gamemode ? `No sessions with ${gamemode} games` : 'No sessions yet'}
+        </p>
+      );
     }
     return (
       <p className="error-message">Failed to load sessions: {error.message}</p>
@@ -34,7 +40,11 @@ export default function SessionsList() {
   }
 
   if (sessions.length === 0) {
-    return <p className="state-message">No sessions yet</p>;
+    return (
+      <p className="state-message">
+        {gamemode ? `No sessions with ${gamemode} games` : 'No sessions yet'}
+      </p>
+    );
   }
 
   return (
