@@ -212,8 +212,13 @@ public class SessionService {
         log.info("Session {} had {} unfinished games removed",
                 session.getSessionId(), before - session.getGames().size());
 
-        session.setActive(false);
-        log.info("Successfully finished session {}", session.getSessionId());
+        if (session.getGames().isEmpty()) {
+            sessionRepository.delete(session);
+            log.info("Successfully deleted session {}", sessionId);
+        } else {
+            session.setActive(false);
+            log.info("Successfully finished session {}", session.getSessionId());
+        }
     }
 
     @Transactional
