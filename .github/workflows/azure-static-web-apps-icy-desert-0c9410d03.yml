@@ -16,7 +16,7 @@ jobs:
     env:
       VITE_API_URL: https://backend-superdarter-d4d6d7cbefhccpd2.germanywestcentral-01.azurewebsites.net
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           submodules: true
           lfs: false
