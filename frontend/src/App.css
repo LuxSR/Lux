@@ -691,7 +691,9 @@
 
 /* ===== Profile page ===== */
 .profile-page {
+  width: 100%;
   max-width: 760px;
+  margin-inline: auto;
 }
 
 .profile-identity {
@@ -810,6 +812,10 @@
 }
 
 @media (max-width: 700px) {
+  .app-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .sidebar {
     position: fixed;
     inset: var(--topbar-height) 0 0;
