@@ -152,6 +152,187 @@
   padding: var(--space-1) var(--space-1);
 }
 
+/* ===== Home page ===== */
+.home-page {
+  --home-accent: #e8ff3d;
+  --home-ink: #08090c;
+  --home-paper: #f1f0ea;
+  --home-line: rgba(241, 240, 234, 0.22);
+  min-height: 100%;
+  margin: calc(var(--space-5) * -1);
+  padding: clamp(24px, 5vw, 72px);
+  color: var(--home-paper);
+  background:
+    radial-gradient(circle at 75% 12%, rgba(59, 130, 246, 0.24), transparent 28rem),
+    linear-gradient(135deg, #090a0e 0%, #151923 55%, #0b0d12 100%);
+  overflow: hidden;
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  align-items: center;
+  gap: clamp(32px, 7vw, 104px);
+  max-width: 1240px;
+  min-height: min(650px, calc(100vh - var(--topbar-height) - 96px));
+  margin: 0 auto;
+}
+
+.home-kicker,
+.home-feature-number {
+  color: var(--home-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.home-hero h1 {
+  max-width: 650px;
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: clamp(3.5rem, 8vw, 7.5rem);
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.88;
+}
+
+.home-hero h1 span {
+  display: block;
+  color: var(--home-accent);
+}
+
+.home-intro {
+  max-width: 460px;
+  color: #c3c6cd;
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.home-actions .btn {
+  background: var(--home-accent);
+  color: var(--home-ink);
+  font-weight: 700;
+}
+
+.home-actions .btn:hover {
+  background: #fff;
+}
+
+.home-text-link {
+  color: var(--home-paper);
+  font-weight: 600;
+}
+
+.home-hero-visual {
+  position: relative;
+  min-height: 510px;
+}
+
+.home-player-photo {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, transparent 35%, rgba(232, 255, 61, 0.35)),
+    linear-gradient(25deg, #141a2b, #4a617e);
+}
+
+.home-player-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.home-player-photo-main {
+  position: absolute;
+  inset: 0 8% 0 9%;
+  clip-path: polygon(0 8%, 90% 0, 100% 88%, 12% 100%);
+}
+
+.home-score-chip {
+  position: absolute;
+  bottom: 12%;
+  left: 0;
+  display: grid;
+  padding: var(--space-3) var(--space-4);
+  background: var(--home-accent);
+  color: var(--home-ink);
+  transform: rotate(-6deg);
+}
+
+.home-score-chip span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-score-chip strong {
+  font-size: 3rem;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+}
+
+.home-visual-caption {
+  position: absolute;
+  right: 2%;
+  bottom: 1%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+
+.home-feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  max-width: 1240px;
+  margin: 0 auto;
+  border-top: 1px solid var(--home-line);
+}
+
+.home-feature {
+  min-width: 0;
+  padding: clamp(24px, 3vw, 44px);
+}
+
+.home-feature + .home-feature {
+  border-left: 1px solid var(--home-line);
+}
+
+.home-feature h2 {
+  margin-top: var(--space-4);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.05;
+}
+
+.home-feature p {
+  margin-top: var(--space-3);
+  color: #b9bdc6;
+}
+
+.home-feature-photo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.65fr);
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.home-player-photo-secondary {
+  min-height: 210px;
+  clip-path: polygon(8% 0, 100% 9%, 91% 100%, 0 88%);
+}
+
 /* ===== Sessions page ===== */
 .sessions-header {
   display: flex;
@@ -812,6 +993,42 @@
 }
 
 @media (max-width: 700px) {
+  .home-page {
+    margin: calc(var(--space-4) * -1);
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .home-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(3.4rem, 17vw, 5rem);
+  }
+
+  .home-hero-visual {
+    min-height: 390px;
+  }
+
+  .home-player-photo-main {
+    inset: 0 6% 0 3%;
+  }
+
+  .home-score-chip {
+    bottom: 8%;
+  }
+
+  .home-feature-grid {
+    grid-template-columns: 1fr;
+    margin-top: var(--space-5);
+  }
+
+  .home-feature + .home-feature {
+    border-top: 1px solid var(--home-line);
+    border-left: 0;
+  }
+
   .app-body {
     grid-template-columns: minmax(0, 1fr);
   }
