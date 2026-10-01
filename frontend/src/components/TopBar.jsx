@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../useAuth';
 import logo from '../assets/superdarterlogo.png';
 
-export default function TopBar() {
+export default function TopBar({ sidebarOpen, onToggleSidebar }) {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -13,9 +13,19 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
+      {isAuthenticated && (
+        <button
+          className="btn topbar-menu-button"
+          type="button"
+          onClick={onToggleSidebar}
+          aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={sidebarOpen}
+        >
+          {sidebarOpen ? 'Close menu' : 'Menu'}
+        </button>
+      )}
       <NavLink to="/" className="topbar-logo">
         <img src={logo} alt="Lux logo" />
-        <span>Lux</span>
       </NavLink>
       {isAuthenticated ? (
         <button
