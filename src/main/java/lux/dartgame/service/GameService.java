@@ -1,5 +1,16 @@
 package lux.dartgame.service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.extern.slf4j.Slf4j;
 import lux.dartgame.constants.Constants;
 import lux.dartgame.dto.GameResponse;
@@ -14,6 +25,7 @@ import lux.dartgame.exception.InvalidTurnException;
 import lux.dartgame.exception.NoAvailableGameException;
 import lux.dartgame.exception.SessionNotFoundException;
 import lux.dartgame.exception.UsernameNotFoundException;
+import lux.dartgame.model.Game;
 import lux.dartgame.model.GameStat;
 import lux.dartgame.model.GameStatsId;
 import lux.dartgame.model.PlayerStat;
@@ -23,18 +35,6 @@ import lux.dartgame.repository.GameRepository;
 import lux.dartgame.repository.GameStatRepository;
 import lux.dartgame.repository.SessionRepository;
 import lux.dartgame.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import lux.dartgame.model.Game;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -308,6 +308,7 @@ public class GameService {
 
         return players.<List<GameStatResponse>>map(strings -> gameStats.stream()
                 .filter(stat -> strings.contains(stat.getUser().getUserName()))
+                .sorted(Comparator.comparingInt(GameStat::getPosition))
                 .map(stat -> new GameStatResponse(stat.getUser().getUserName(),
                                                  stat.getPoints(),
                                                  stat.getTurn(),
@@ -329,6 +330,7 @@ public class GameService {
                         .collect(Collectors.toList()));
 
     }
+
     @Transactional
     public void deleteGame(final long sessionId,
                            final String player,
