@@ -85,6 +85,21 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Integration tests: a real PostgreSQL started per test JVM -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- PostgreSQL module: supplies the PostgreSQLContainer used by the integration tests -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.21.4</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Needed for validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -207,5 +222,36 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            Integration tests are the *IT.java classes. Surefire's default includes
+            do not match that suffix, so `mvn verify` runs unit tests only and needs
+            no Docker. Activate this profile to run the full suite:
+
+                mvn verify -Pintegration                     # unit + integration
+                mvn verify -Pintegration -Dit.test=AuthIT   # single integration class
+        -->
+        <profile>
+            <id>integration</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.6.0</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
