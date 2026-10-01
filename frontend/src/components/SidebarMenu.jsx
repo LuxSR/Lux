@@ -1,23 +1,13 @@
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
-export default function SidebarMenu() {
-  const [collapsed, setCollapsed] = useState(false);
-
+export default function SidebarMenu({ isOpen, onClose }) {
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar-collapsed' : ''}`}>
-      <button
-        className="btn sidebar-toggle"
-        type="button"
-        onClick={() => setCollapsed(!collapsed)}
-      >
-        {collapsed ? '»' : '«'}
-      </button>
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
       <nav className="sidebar-nav">
-        <NavLink to="/sessions" className="sidebar-link">
+        <NavLink to="/sessions" className="sidebar-link" onClick={onClose}>
           Sessions
         </NavLink>
-        <NavLink to="/profile" className="sidebar-link">
+        <NavLink to="/profile" className="sidebar-link" onClick={onClose}>
           Profile
         </NavLink>
       </nav>
