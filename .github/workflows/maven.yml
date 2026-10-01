@@ -26,5 +26,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build and test with Maven
+      - name: Build and unit test with Maven
+        if: github.event_name == 'push'
         run: mvn -B verify --file pom.xml
+
+      - name: Build, unit and integration test with Maven
+        if: github.event_name == 'pull_request'
+        run: mvn -B verify -Pintegration --file pom.xml
