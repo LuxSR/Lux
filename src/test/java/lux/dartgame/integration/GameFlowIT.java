@@ -188,7 +188,7 @@ class GameFlowIT extends AbstractIT {
         playRound(token, session.id(), gameId, ALICE, "20 3");
         assertThat(pointsIn(gameId, ALICE)).isEqualTo(60);
 
-for (int round = 0; round < 4; round++) {
+        for (int round = 0; round < 4; round++) {
             playRound(token, session.id(), gameId, ALICE, "20 3");
         }
         assertThat(pointsIn(gameId, ALICE)).isEqualTo(300);
