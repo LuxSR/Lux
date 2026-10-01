@@ -119,12 +119,15 @@ export default function GamePage() {
         : [1, 2, 3];
 
   return (
-    <div className="page game-page">
+    <div
+      className={`page game-page${
+        finished ? ' game-page-finished' : ' game-page-in-progress'
+      }`}
+    >
       <div className="game-page-header">
         <Link className="btn session-detail-back" to={`/session/${id}`}>
           &larr; Back to Session
         </Link>
-        <h1>Game #{gameId}</h1>
       </div>
 
       {!finished && (
@@ -154,8 +157,9 @@ export default function GamePage() {
       {finished ? (
         <>
           <div className="game-winner">
-            <h2>Winner: {game.winner || game.turn}</h2>
-            <p>Game finished</p>
+            <p className="game-result-label">Game complete</p>
+            <h2>{game.winner || game.turn}</h2>
+            <p className="game-result-summary">Takes the win</p>
           </div>
           <div className="game-stats-section">
             <h2>Game stats</h2>

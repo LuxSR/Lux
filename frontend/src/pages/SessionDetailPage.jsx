@@ -157,77 +157,90 @@ export default function SessionDetailPage() {
 
   return (
     <div className="page session-detail-page">
-      <div className="session-detail-header">
+      <header className="session-detail-hero">
         {BackToSessions}
-        <h1>Session #{id}</h1>
-      </div>
-      <div className="session-detail-meta">
-        <span className="session-card-date">
-          {new Date(session.date).toLocaleDateString()}
-        </span>
-        {session.isActive && (
-          <span className="session-card-badge">Active</span>
-        )}
-      </div>
-      {actionError && <p className="error-message">{actionError}</p>}
-      <div className="session-detail-actions">
-        {(isAdmin || (isOwner && session.isActive)) && (
-          <button
-            className="btn btn-danger"
-            type="button"
-            onClick={() => setDeletingSession(true)}
-          >
-            Delete session
-          </button>
-        )}
-        {isOwner && session.isActive ? (
-          <button
-            className="btn btn-danger"
-            type="button"
-            onClick={() => setFinishingSession(true)}
-          >
-            Finish session
-          </button>
-        ) : (
-          !session.isActive && (
-            <span className="session-finished-badge">Finished</span>
-          )
-        )}
-      </div>
-      <div className="session-detail-games-header">
-        <h2>Games in this session</h2>
-        {isOwner && session.isActive && (
-          <button
-            className="btn btn-primary"
-            type="button"
-            onClick={() => setAddingGames(true)}
-          >
-            Add game
-          </button>
-        )}
-      </div>
-      {Object.keys(gamemodeCounts).length === 0 ? (
-        <p className="state-message session-detail-empty">
-          No games in this session
-        </p>
-      ) : (
-        <div className="session-detail-games">
-          {Object.entries(gamemodeCounts).map(([gamemode, count]) => (
-            <GameTypeCard
-              key={gamemode}
-              gamemode={gamemode}
-              count={count}
-              onStart={() => handleStart(gamemode)}
-              onDelete={() => setDeletingGame(gamemode)}
-              deletable={Boolean(isOwner && session.isActive)}
-              finishedMessage={finished[gamemode]}
-              playable={session.isActive}
-            />
-          ))}
+        <div className="session-detail-heading">
+          <div>
+            <p className="session-detail-eyebrow">Session</p>
+            <h1>#{id}</h1>
+          </div>
+          <div className="session-detail-meta">
+            <span className="session-card-date">
+              {new Date(session.date).toLocaleDateString()}
+            </span>
+            {session.isActive ? (
+              <span className="session-card-badge">Active</span>
+            ) : (
+              <span className="session-finished-badge">Finished</span>
+            )}
+          </div>
         </div>
-      )}
-      <h2>Finished games</h2>
-      <FinishedGamesList games={finishedGames} sessionId={id} />
+        <div className="session-detail-actions">
+          {(isAdmin || (isOwner && session.isActive)) && (
+            <button
+              className="btn btn-danger"
+              type="button"
+              onClick={() => setDeletingSession(true)}
+            >
+              Delete session
+            </button>
+          )}
+          {isOwner && session.isActive && (
+            <button
+              className="btn btn-danger"
+              type="button"
+              onClick={() => setFinishingSession(true)}
+            >
+              Finish session
+            </button>
+          )}
+        </div>
+      </header>
+      {actionError && <p className="error-message">{actionError}</p>}
+      <section className="session-detail-section">
+        <div className="session-detail-games-header">
+          <div>
+            <p className="session-detail-eyebrow">Ready to play</p>
+            <h2>Games in this session</h2>
+          </div>
+          {isOwner && session.isActive && (
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => setAddingGames(true)}
+            >
+              Add game
+            </button>
+          )}
+        </div>
+        {Object.keys(gamemodeCounts).length === 0 ? (
+          <p className="state-message session-detail-empty">
+            No games in this session
+          </p>
+        ) : (
+          <div className="session-detail-games">
+            {Object.entries(gamemodeCounts).map(([gamemode, count]) => (
+              <GameTypeCard
+                key={gamemode}
+                gamemode={gamemode}
+                count={count}
+                onStart={() => handleStart(gamemode)}
+                onDelete={() => setDeletingGame(gamemode)}
+                deletable={Boolean(isOwner && session.isActive)}
+                finishedMessage={finished[gamemode]}
+                playable={session.isActive}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="session-detail-section session-detail-finished-section">
+        <div className="session-detail-section-heading">
+          <p className="session-detail-eyebrow">Results</p>
+          <h2>Finished games</h2>
+        </div>
+        <FinishedGamesList games={finishedGames} sessionId={id} />
+      </section>
       {addingGames && (
         <AddGamesModal
           sessionId={id}
