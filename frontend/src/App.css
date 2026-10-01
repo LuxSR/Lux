@@ -784,6 +784,10 @@
   margin-bottom: var(--space-2);
 }
 
+.game-page-header .session-detail-back {
+  flex-basis: auto;
+}
+
 .game-page-in-progress {
   text-align: center;
 }
