@@ -94,7 +94,7 @@
 
 .sidebar-link.active {
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
 }
 
 .topbar-menu-button {
@@ -114,12 +114,12 @@
 
 .btn:hover {
   background: var(--color-primary-hover);
-  color: #171313;
+  color: var(--color-on-primary);
 }
 
 .btn-primary {
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
 }
 
 .btn-primary:hover {
@@ -129,18 +129,18 @@
 /* Declared after .btn:hover so destructive actions retain their warning color. */
 .btn-danger {
   background: var(--color-error);
-  color: #fff;
+  color: var(--color-on-error);
 }
 
 .btn-danger:hover {
   background: var(--color-error);
-  color: #fff;
+  color: var(--color-on-error);
   opacity: 0.85;
 }
 
 .topbar-login {
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
   text-decoration: none;
 }
 
@@ -155,17 +155,18 @@
 
 /* ===== Home page ===== */
 .home-page {
-  --home-accent: #ff3b16;
-  --home-ink: #171313;
-  --home-paper: #fffdf9;
-  --home-line: rgba(255, 253, 249, 0.22);
+  --home-accent: #7dd3fc;
+  --home-ink: #0b1930;
+  --home-paper: #f8fbff;
+  --home-text-muted: #bed0e9;
+  --home-line: rgba(248, 251, 255, 0.24);
   min-height: 100%;
   margin: calc(var(--space-5) * -1);
   padding: clamp(24px, 5vw, 72px);
   color: var(--home-paper);
   background:
-    radial-gradient(circle at 75% 12%, rgba(255, 59, 22, 0.3), transparent 28rem),
-    linear-gradient(135deg, #171313 0%, #39211b 55%, #1c1513 100%);
+    radial-gradient(circle at 75% 12%, rgba(21, 94, 239, 0.42), transparent 28rem),
+    linear-gradient(135deg, #0b1930 0%, #12365e 55%, #0d2440 100%);
   overflow: hidden;
 }
 
@@ -204,7 +205,7 @@
 
 .home-intro {
   max-width: 460px;
-  color: #c3c6cd;
+  color: var(--home-text-muted);
   font-size: clamp(1rem, 1.5vw, 1.2rem);
 }
 
@@ -240,8 +241,8 @@
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(145deg, transparent 35%, rgba(232, 255, 61, 0.35)),
-    linear-gradient(25deg, #1d0d09, #68200f);
+    linear-gradient(145deg, transparent 35%, rgba(125, 211, 252, 0.38)),
+    linear-gradient(25deg, #0b1930, #155eef);
 }
 
 .home-player-photo img {
@@ -319,7 +320,7 @@
 
 .home-feature p {
   margin-top: var(--space-3);
-  color: #b9bdc6;
+  color: var(--home-text-muted);
 }
 
 .home-feature-photo {
@@ -391,7 +392,7 @@
 }
 
 .session-card-badge {
-  background: rgba(255, 151, 0, 0.15);
+  background: var(--color-success-subtle);
   color: var(--color-success);
   padding: 2px var(--space-2);
   border-radius: 999px;
@@ -414,7 +415,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: var(--space-5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 12px var(--color-shadow);
 }
 
 /* ===== Game type card ===== */
@@ -486,7 +487,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay);
   display: grid;
   place-items: center;
   z-index: 1000;
@@ -500,7 +501,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: var(--space-5);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px var(--color-shadow);
 }
 
 .modal h2 {
@@ -587,7 +588,7 @@
 
 .player-chip-owner {
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
 }
 
 .player-chip button {
@@ -650,9 +651,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background:
-    linear-gradient(135deg, rgba(255, 151, 0, 0.12), transparent 48%),
+    linear-gradient(135deg, var(--color-primary-subtle), transparent 48%),
     var(--color-surface);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px var(--color-shadow);
 }
 
 .session-detail-back {
@@ -817,7 +818,7 @@
 
 .game-scoreboard-turn {
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
 }
 
 .game-scoreboard-turns {
@@ -840,7 +841,7 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius);
   background: var(--color-primary);
-  color: #171313;
+  color: var(--color-on-primary);
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -909,9 +910,9 @@
   border: 1px solid var(--color-success);
   border-radius: var(--radius);
   background:
-    linear-gradient(135deg, rgba(255, 151, 0, 0.16), transparent 55%),
+    linear-gradient(135deg, var(--color-success-subtle), transparent 55%),
     var(--color-surface);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 16px 40px var(--color-shadow);
 }
 
 .game-winner h2 {
@@ -996,7 +997,7 @@
 }
 
 .game-stats-winner {
-  background: rgba(255, 151, 0, 0.15);
+  background: var(--color-success-subtle);
 }
 
 .game-stats-winner td:first-child {

@@ -1,15 +1,21 @@
 :root {
   /* Palette — edit this block to re-theme */
-  --color-bg: #171313;
-  --color-surface: #241f1d;
-  --color-surface-hover: #39312f;
-  --color-text: #fffdf9;
-  --color-text-muted: #bdb6b1;
-  --color-border: #403633;
-  --color-primary: #d8cfca;
-  --color-primary-hover: #beb2ab;
-  --color-error: #e52b20;
-  --color-success: #ff9700;
+  --color-bg: #0b1930;
+  --color-surface: #102947;
+  --color-surface-hover: #173b61;
+  --color-text: #f8fbff;
+  --color-text-muted: #bed0e9;
+  --color-border: #2c5b86;
+  --color-primary: #7dd3fc;
+  --color-primary-hover: #bae6fd;
+  --color-on-primary: #0b1930;
+  --color-error: #fb7185;
+  --color-on-error: #0b1930;
+  --color-success: #5eead4;
+  --color-success-subtle: #0d4856;
+  --color-primary-subtle: #12365e;
+  --color-shadow: rgba(3, 10, 24, 0.38);
+  --color-overlay: rgba(3, 10, 24, 0.72);
 
   /* Layout */
   --topbar-height: 56px;
