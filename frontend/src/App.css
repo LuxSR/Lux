@@ -635,29 +635,73 @@
 }
 
 /* ===== Session detail page ===== */
-.session-detail-header {
+.session-detail-page {
+  width: min(960px, 100%);
+  margin-inline: auto;
+}
+
+.session-detail-hero {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(255, 151, 0, 0.12), transparent 48%),
+    var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .session-detail-back {
+  flex-basis: 100%;
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-muted);
   text-decoration: none;
+}
+
+.session-detail-back:hover {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.session-detail-heading {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.session-detail-eyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.session-detail-heading h1 {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  letter-spacing: -0.05em;
+  line-height: 1;
 }
 
 .session-detail-meta {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
 }
 
 .session-detail-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
 }
 
 .session-finished-badge {
@@ -680,10 +724,27 @@
 }
 
 .session-detail-games {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
   margin-top: var(--space-3);
+}
+
+.session-detail-section {
+  margin-top: var(--space-5);
+}
+
+.session-detail-finished-section {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.session-detail-section-heading {
+  margin-bottom: var(--space-3);
+}
+
+.session-detail-section-heading h2 {
+  margin-top: var(--space-1);
 }
 
 .session-detail-empty {
@@ -1089,11 +1150,7 @@
     grid-template-columns: 1fr;
   }
 
-  .session-detail-header,
   .game-page-header,
-  .session-detail-meta,
-  .session-detail-actions,
-  .session-detail-games-header,
   .game-type-card,
   .finished-game-card {
     align-items: stretch;
@@ -1104,7 +1161,6 @@
     align-items: flex-start;
   }
 
-  .session-detail-actions,
   .game-type-card-actions,
   .modal-actions {
     justify-content: stretch;
@@ -1116,7 +1172,6 @@
     flex-direction: column;
   }
 
-  .session-detail-actions .btn,
   .game-type-card-actions .btn,
   .modal-actions .btn,
   .finished-game-view {
@@ -1136,6 +1191,31 @@
 
   .player-picker-row .btn {
     width: 100%;
+  }
+
+  .session-detail-hero {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--space-4);
+  }
+
+  .session-detail-heading,
+  .session-detail-games-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .session-detail-heading {
+    gap: var(--space-3);
+  }
+
+  .session-detail-actions .btn,
+  .session-detail-games-header .btn {
+    width: 100%;
+  }
+
+  .session-detail-games {
+    grid-template-columns: 1fr;
   }
 }
 
