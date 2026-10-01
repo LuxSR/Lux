@@ -319,6 +319,7 @@ public class GameService {
                                                  stat.getCheckoutAccuracy()))
                 .collect(Collectors.toList()))
                 .orElseGet(() -> gameStats.stream()
+                        .sorted(Comparator.comparingInt(GameStat::getPosition))
                         .map(stat -> new GameStatResponse(stat.getUser().getUserName(),
                                                            stat.getPoints(),
                                                            stat.getTurn(),
