@@ -896,6 +896,121 @@
   cursor: not-allowed;
 }
 
+.game-input-mode {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.game-input-mode button,
+.game-board-slots button,
+.game-board-miss {
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+}
+
+.game-input-mode button + button {
+  border-left: 1px solid var(--color-border);
+}
+
+.game-input-mode .game-input-mode-active,
+.game-board-slots .game-board-slot-active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.game-board-entry {
+  width: min(420px, 100%);
+}
+
+.game-board-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.game-board-slots button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.dartboard-input {
+  width: min(100%, 360px);
+  margin: 0 auto;
+}
+
+.dartboard-input svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dartboard-segment,
+.dartboard-outer-bull,
+.dartboard-inner-bull {
+  cursor: pointer;
+}
+
+.game-input-mode button:focus:not(:focus-visible),
+.game-board-slots button:focus:not(:focus-visible),
+.game-board-miss:focus:not(:focus-visible),
+.dartboard-segment:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.dartboard-input-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.dartboard-single-dark {
+  fill: #171b1d;
+}
+.dartboard-single-light {
+  fill: #e8dfca;
+}
+.dartboard-double-dark,
+.dartboard-triple-dark {
+  fill: #0b725d;
+}
+.dartboard-double-light,
+.dartboard-triple-light {
+  fill: #b62d36;
+}
+.dartboard-wire {
+  fill: none;
+  stroke: #d5c8ae;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+.dartboard-outer-bull {
+  fill: #0b725d;
+}
+.dartboard-inner-bull {
+  fill: #b62d36;
+}
+.dartboard-number {
+  fill: var(--color-text);
+  font-size: 7px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.game-board-miss {
+  display: block;
+  margin: var(--space-3) auto 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
 .game-round-total {
   font-size: 1.15rem;
   font-weight: 600;
