@@ -722,8 +722,21 @@
   margin-bottom: var(--space-2);
 }
 
+.game-page-in-progress {
+  text-align: center;
+}
+
+.game-page-in-progress .game-page-header {
+  justify-content: flex-start;
+}
+
+.game-page-in-progress .game-scoreboard {
+  width: min(560px, 100%);
+}
+
 .game-scoreboard {
   width: min(420px, 100%);
+  margin-inline: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -757,7 +770,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  margin-top: var(--space-3);
+  margin: var(--space-3) auto 0;
 }
 
 .game-turn-banner {
@@ -956,6 +969,10 @@
   .finished-game-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .game-page-in-progress .game-page-header {
+    align-items: flex-start;
   }
 
   .session-detail-actions,

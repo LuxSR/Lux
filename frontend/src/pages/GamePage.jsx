@@ -119,12 +119,11 @@ export default function GamePage() {
         : [1, 2, 3];
 
   return (
-    <div className="page game-page">
+    <div className={`page game-page${finished ? '' : ' game-page-in-progress'}`}>
       <div className="game-page-header">
         <Link className="btn session-detail-back" to={`/session/${id}`}>
           &larr; Back to Session
         </Link>
-        <h1>Game #{gameId}</h1>
       </div>
 
       {!finished && (
