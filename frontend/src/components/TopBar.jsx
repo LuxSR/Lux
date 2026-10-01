@@ -26,7 +26,6 @@ export default function TopBar({ sidebarOpen, onToggleSidebar }) {
       )}
       <NavLink to="/" className="topbar-logo">
         <img src={logo} alt="Lux logo" />
-        <span>Lux</span>
       </NavLink>
       {isAuthenticated ? (
         <button
