@@ -24,13 +24,25 @@ export default function GameStatsTable({ players, winner }) {
                 player.username === winner ? 'game-stats-winner' : undefined
               }
             >
-              <td>{player.username}</td>
-              <td className="game-stats-num">{player.points}</td>
-              <td className="game-stats-num">{player.turns}</td>
-              <td className="game-stats-num">{averageScore(player)}</td>
-              <td className="game-stats-num">{player.highestScore}</td>
-              <td className="game-stats-num">{player.triple20s}</td>
-              <td className="game-stats-num">{player.bullseyes}</td>
+              <td data-label="Player">{player.username}</td>
+              <td className="game-stats-num" data-label="Points">
+                {player.points}
+              </td>
+              <td className="game-stats-num" data-label="Turns">
+                {player.turns}
+              </td>
+              <td className="game-stats-num" data-label="Average">
+                {averageScore(player)}
+              </td>
+              <td className="game-stats-num" data-label="Highest">
+                {player.highestScore}
+              </td>
+              <td className="game-stats-num" data-label="180s">
+                {player.triple20s}
+              </td>
+              <td className="game-stats-num" data-label="Bullseyes">
+                {player.bullseyes}
+              </td>
             </tr>
           ))}
         </tbody>
